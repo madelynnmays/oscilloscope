@@ -6,3 +6,10 @@
  */
 
 
+void ButtonDebounce(){
+
+}
+
+void KnobDeboucne(){
+
+}
