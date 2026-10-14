@@ -6,3 +6,19 @@
  */
 
 
+
+void DisplayVoltageValue(num){
+
+	/* TODO */
+	return;
+}
+
+void DisplayCursorValue(int16_t num){
+	/* TODO */
+	return;
+}
+
+void DisplayCursor2Value(int16_t num){
+	/* TODO */
+	return;
+}
