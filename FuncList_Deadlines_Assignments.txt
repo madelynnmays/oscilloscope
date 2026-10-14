@@ -1,0 +1,25 @@
+Function's				deadline
+
+Trigger detect 				1 week;
+Screen Display				2 week;
+Button Debounce				2 week;
+Knob Debounce				2 week;
+
+Thread assignments
+
+1----------------
+
+Button Debounce			
+Knob Debounce				
+
+
+2----------------
+Screen Display
+
+
+3----------------
+Trigger detect
+
+Backlog
+Sending information
+priority low
