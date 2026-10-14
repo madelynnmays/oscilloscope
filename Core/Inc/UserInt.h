@@ -11,6 +11,8 @@
 #ifndef INC_USERINT_H_
 #define INC_USERINT_H_
 
+void KnobDebouce();
 
+void ButtonDebounce();
 
 #endif /* INC_USERINT_H_ */
