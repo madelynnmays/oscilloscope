@@ -8,7 +8,7 @@
 
 //madelynn
 
-//UserInt handles the actual value getting.
+//UserInt handles the actual trigger level value getting.
 
 //Will determine whether it's time to trigger, and center the display about that trigger level
 //relies on VoltMeasure
@@ -21,6 +21,7 @@
 
 #include "main.h"
 #include "app_freertos.h"
+
 enum triggerEdge {RISE,FALL};
 
 uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum triggerEdge edge);
