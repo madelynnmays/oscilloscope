@@ -20,6 +20,7 @@
 #include "main.h"
 #include "app_freertos.h"
 #include "adc.h"
+#include "spi.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -93,6 +94,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM16_Init();
   MX_ADC1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
