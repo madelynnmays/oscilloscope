@@ -55,6 +55,11 @@ extern "C" {
 
 /* USER CODE END EM */
 extern osThreadId_t defaultTaskHandle;
+extern osThreadId_t userIntTaskHandle;
+extern osThreadId_t voltReadingTaskHandle;
+extern osMessageQueueId_t ADCreadingsHandle;
+extern osMessageQueueId_t time_voltagePairsHandle;
+extern osMessageQueueId_t voltageValuesHandle;
 
 /* Exported function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -62,6 +67,8 @@ extern osThreadId_t defaultTaskHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void userIntTaskStart(void *argument);
+void voltReadingTaskStart(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 

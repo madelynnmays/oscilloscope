@@ -26,6 +26,8 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticQueue_t osStaticMessageQDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -50,6 +52,63 @@ const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
+};
+/* Definitions for userIntTask */
+osThreadId_t userIntTaskHandle;
+uint32_t MyBufferuserIntTask[ 128 ];
+osStaticThreadDef_t MycontrolBlocuserIntTask;
+const osThreadAttr_t userIntTask_attributes = {
+  .name = "userIntTask",
+  .stack_mem = &MyBufferuserIntTask[0],
+  .stack_size = sizeof(MyBufferuserIntTask),
+  .cb_mem = &MycontrolBlocuserIntTask,
+  .cb_size = sizeof(MycontrolBlocuserIntTask),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for voltReadingTask */
+osThreadId_t voltReadingTaskHandle;
+uint32_t MyBuffervoltReadingTask[ 128 ];
+osStaticThreadDef_t MycontrolBlocvoltReadingTask;
+const osThreadAttr_t voltReadingTask_attributes = {
+  .name = "voltReadingTask",
+  .stack_mem = &MyBuffervoltReadingTask[0],
+  .stack_size = sizeof(MyBuffervoltReadingTask),
+  .cb_mem = &MycontrolBlocvoltReadingTask,
+  .cb_size = sizeof(MycontrolBlocvoltReadingTask),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for ADCreadings */
+osMessageQueueId_t ADCreadingsHandle;
+uint8_t ADCreadingsBuffer01[ 32 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t ADCreadingsControlBlock01;
+const osMessageQueueAttr_t ADCreadings_attributes = {
+  .name = "ADCreadings",
+  .cb_mem = &ADCreadingsControlBlock01,
+  .cb_size = sizeof(ADCreadingsControlBlock01),
+  .mq_mem = &ADCreadingsBuffer01,
+  .mq_size = sizeof(ADCreadingsBuffer01)
+};
+/* Definitions for time_voltagePairs */
+osMessageQueueId_t time_voltagePairsHandle;
+uint8_t time_voltagePairsBuffer02[ 32 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t time_voltagePairsControlBlock02;
+const osMessageQueueAttr_t time_voltagePairs_attributes = {
+  .name = "time_voltagePairs",
+  .cb_mem = &time_voltagePairsControlBlock02,
+  .cb_size = sizeof(time_voltagePairsControlBlock02),
+  .mq_mem = &time_voltagePairsBuffer02,
+  .mq_size = sizeof(time_voltagePairsBuffer02)
+};
+/* Definitions for voltageValues */
+osMessageQueueId_t voltageValuesHandle;
+uint8_t voltageValuesBuffer03[ 32 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t voltageValuesControlBlock03;
+const osMessageQueueAttr_t voltageValues_attributes = {
+  .name = "voltageValues",
+  .cb_mem = &voltageValuesControlBlock03,
+  .cb_size = sizeof(voltageValuesControlBlock03),
+  .mq_mem = &voltageValuesBuffer03,
+  .mq_size = sizeof(voltageValuesBuffer03)
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,12 +137,24 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+  /* creation of ADCreadings */
+  ADCreadingsHandle = osMessageQueueNew (32, sizeof(uint16_t), &ADCreadings_attributes);
+  /* creation of time_voltagePairs */
+  time_voltagePairsHandle = osMessageQueueNew (32, sizeof(uint16_t), &time_voltagePairs_attributes);
+  /* creation of voltageValues */
+  voltageValuesHandle = osMessageQueueNew (32, sizeof(uint16_t), &voltageValues_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of userIntTask */
+  userIntTaskHandle = osThreadNew(userIntTaskStart, NULL, &userIntTask_attributes);
+
+  /* creation of voltReadingTask */
+  voltReadingTaskHandle = osThreadNew(voltReadingTaskStart, NULL, &voltReadingTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -110,6 +181,42 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END defaultTask */
+}
+
+/* USER CODE BEGIN Header_userIntTaskStart */
+/**
+* @brief Function implementing the userIntTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_userIntTaskStart */
+void userIntTaskStart(void *argument)
+{
+  /* USER CODE BEGIN userIntTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END userIntTask */
+}
+
+/* USER CODE BEGIN Header_voltReadingTaskStart */
+/**
+* @brief Function implementing the voltReadingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_voltReadingTaskStart */
+void voltReadingTaskStart(void *argument)
+{
+  /* USER CODE BEGIN voltReadingTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END voltReadingTask */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -43,6 +43,8 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -52,7 +54,9 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern const uint32_t DELAY_100us;
+extern const uint32_t DELAY_1ms;
+extern const uint32_t DELAY_10us;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
