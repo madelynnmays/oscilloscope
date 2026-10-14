@@ -5,7 +5,7 @@
  *      Author: Madelynn
  */
 
-//madelynn
+//
 
 #ifndef INC_FORMATTER_H_
 #define INC_FORMATTER_H_

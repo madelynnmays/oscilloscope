@@ -5,7 +5,7 @@
  *      Author: Madelynn
  */
 
-//nick
+//madelynn
 #ifndef INC_METAINFODISPLAY_H_
 #define INC_METAINFODISPLAY_H_
 
