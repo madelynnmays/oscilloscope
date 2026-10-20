@@ -19,8 +19,22 @@ void Spi_init(){
 		if(!LL_SPI_IsActiveFlag_BSY(SPI1)){break;}
 	}
 	GPIOA->ODR |= GPIO_PIN_5;
-
 }
-/*
- *
- */
+
+void Spi_Formant_Send(int x, int y){
+
+	GPIOA->ODR &= ~GPIO_PIN_5;
+
+	//page? y cord/8 to get the page
+	// then for the bit is y%8
+
+	//frame buffer?
+	//[page][x]
+	//some bullshit ig idk anymore?
+
+	for (uint32_t j = 0; j<123456; j++){
+		if(!LL_SPI_IsActiveFlag_BSY(SPI1)){break;}
+	}
+
+	GPIOA->ODR |= GPIO_PIN_5;
+}
