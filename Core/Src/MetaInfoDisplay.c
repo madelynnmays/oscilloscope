@@ -7,18 +7,19 @@
 
 
 
-void DisplayVoltageValue(num){
+void DisplayVoltageValue(int num){
 
 	/* TODO */
 	return;
 }
 
-void DisplayCursorValue(int16_t num){
+void DisplayCursorValue(int num){
+
 	/* TODO */
 	return;
 }
 
-void DisplayCursor2Value(int16_t num){
+void DisplayCursor2Value(int num){
 	/* TODO */
 	return;
 }
