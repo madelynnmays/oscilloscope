@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Formatter.h"
 
 /* USER CODE END Includes */
 
@@ -175,10 +176,12 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
+	Spi_init();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  Spi_Format_Send();
+	  osDelay(1000);
   }
   /* USER CODE END defaultTask */
 }
