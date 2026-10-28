@@ -18,9 +18,18 @@
 
 extern const uint16_t resolutionADC;
 
+typedef struct {
+    uint8_t * const buffer;
+    int head;
+    int tail;
+    const int maxlen;
+} circ_bbuf_t;
+int circ_bbuf_push(circ_bbuf_t *c, uint8_t data);
+int circ_bbuf_pop(circ_bbuf_t *c, uint8_t *data);
+//source: https://embedjournal.com/implementing-circular-buffer-embedded-c/
 
 uint16_t convertADCtomv(uint16_t ADCResult);
-
+uint16_t readADC(void);
 
 
 
