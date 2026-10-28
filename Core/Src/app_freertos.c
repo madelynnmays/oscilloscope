@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Formatter.h"
-
+#include "Userint.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -196,9 +196,42 @@ void StartDefaultTask(void *argument)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+
+  	int8_t count = 1;
+  	struct btn btnUp = {HIGH,6, GPIOC};
+  	struct btn btnDown = {HIGH,7, GPIOC};
+
+  	struct btn encoderA = {HIGH, 6, GPIOC};
+  	struct btn encoderB = {HIGH, 7, GPIOC};
+  	const uint16_t delay = 2000;
+
   /* Infinite loop */
   for(;;)
   {
+	  btnHandler(&encoderA);
+	  btnHandler(&encoderB);
+
+	  	if (encoderA.btnState == FALL){
+	  		if (encoderB.btnState == HIGH){
+	  			count++;
+	  		} else {
+	  			count--;
+	  		}
+	  	}
+
+	  	btnHandler(&btnUp);
+	  	btnHandler(&btnUp);
+	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
+	  	{
+	  	  count++;
+	  	}
+	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
+	  	{
+	  	  count--;
+	  	}
+	  	count = roundCount(count);
+	  	updateLED(count);
+	  	for (uint16_t i = 0; i< delay; i++){;}
     osDelay(1);
   }
   /* USER CODE END userIntTask */

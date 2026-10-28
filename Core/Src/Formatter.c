@@ -72,7 +72,7 @@ void Spi_Format_Send(/*int x, int y*/){
         for (uint8_t col = 0; col < 120; col++) {
         	GPIOA->ODR &= ~GPIO_PIN_5; // CS Low
             while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-            LL_SPI_TransmitData8(SPI1, 0xFF);    // 0xFF forces all 8 vertical pixels ON
+            LL_SPI_TransmitData8(SPI1, 0x0f);    // 0xFF forces all 8 vertical pixels ON
             osDelay(50);
             GPIOA->ODR |= GPIO_PIN_5;
 
