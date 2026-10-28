@@ -22,7 +22,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Trigger.h"
+#include "adc.h"
+#include "Formatter.h"
+#include "main.h"
+#include "Screen.h"
+#include "UserInt.h"
+#include "VoltMeasure.h"
+#include "MetaInfoDisplay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -176,7 +183,13 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
   /* Infinite loop */
-  for(;;)
+initMetaInfo();
+
+sendMetaInfoWrite('8');
+sendMetaInfoWrite('=');
+sendMetaInfoWrite('=');
+sendMetaInfoWrite('D');
+for(;;)
   {
     osDelay(1);
   }
