@@ -121,7 +121,7 @@ void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
 void TIM16_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM16_IRQn 0 */
-
+	LL_ADC_REG_StartConversion(ADC1);
   /* USER CODE END TIM16_IRQn 0 */
   /* USER CODE BEGIN TIM16_IRQn 1 */
 

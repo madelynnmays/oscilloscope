@@ -35,6 +35,7 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -117,6 +118,22 @@ const osMessageQueueAttr_t voltageValues_attributes = {
   .mq_mem = &voltageValuesBuffer03,
   .mq_size = sizeof(voltageValuesBuffer03)
 };
+/* Definitions for triggerHappened */
+osSemaphoreId_t triggerHappenedHandle;
+osStaticSemaphoreDef_t triggerHappenedControlBlock01;
+const osSemaphoreAttr_t triggerHappened_attributes = {
+  .name = "triggerHappened",
+  .cb_mem = &triggerHappenedControlBlock01,
+  .cb_size = sizeof(triggerHappenedControlBlock01),
+};
+/* Definitions for stopCheckingTrigger */
+osSemaphoreId_t stopCheckingTriggerHandle;
+osStaticSemaphoreDef_t stopCheckingTriggerControlBlock02;
+const osSemaphoreAttr_t stopCheckingTrigger_attributes = {
+  .name = "stopCheckingTrigger",
+  .cb_mem = &stopCheckingTriggerControlBlock02,
+  .cb_size = sizeof(stopCheckingTriggerControlBlock02),
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -136,6 +153,11 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+  /* creation of triggerHappened */
+  triggerHappenedHandle = osSemaphoreNew(1, 1, &triggerHappened_attributes);
+
+  /* creation of stopCheckingTrigger */
+  stopCheckingTriggerHandle = osSemaphoreNew(1, 1, &stopCheckingTrigger_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
