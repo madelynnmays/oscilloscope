@@ -19,7 +19,7 @@ uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum tri
 	if (osMessageQueueGet(voltReadingTaskHandle, &result_current, 0, 100) == osOK)
 	{
 
-		if(result_current > result_previous && edge == RISE)
+		if(result_current > result_previous && edge == RISING)
 		{
 			if(result_current > triggerLevel && triggerLevel > result_previous)
 			{
@@ -27,7 +27,7 @@ uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum tri
 				//raise a semaphore
 			}
 		}
-		else if(result_current < result_previous && edge == FALL)
+		else if(result_current < result_previous && edge == FALLING)
 		{
 			if(result_current < triggerLevel && triggerLevel < result_previous)
 			{
