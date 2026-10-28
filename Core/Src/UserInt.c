@@ -5,19 +5,8 @@
  *      Author: Madelynn
  */
 
+#include "UserInt.h"
 
-void ButtonDebounce(){
-
-	/* TODO */
-	return;
-}
-
-void KnobDeboucne(){
-
-	/* TODO */
-	return;
-}
-/*
 uint8_t btnHandler(struct btn *btn)
 {
 
@@ -60,7 +49,7 @@ void updateLED(uint8_t count)
 		break;
 	case 2: //10
 		GPIOA->ODR |= (1<<8); //red
-		GPIOA->ODR &= ~(1<<9); //green
+		GPIOA->ODR &= ~(1<<9);
 		break;
 	case 3: //11
 		GPIOA->ODR |= (1<<9); //red
@@ -92,48 +81,4 @@ int8_t roundCount(int8_t count)
 	{
 		return count;
 	}
-}*/
-
-/*
- * 	  todo
-	  btnHandler(&encoderA);
-	  btnHandler(&encoderB);
-
-	  	if (encoderA.btnState == FALL){
-	  		if (encoderB.btnState == HIGH){
-	  			count++;
-	  		} else {
-	  			count--;
-	  		}
-	  	}
-
-	  	btnHandler(&btnUp);
-	  	btnHandler(&btnUp);
-	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
-	  	{
-	  	  count++;
-	  	}
-	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
-	  	{
-	  	  count--;
-	  	}
-	  	count = roundCount(count);
-	  	updateLED(count);
-	  	for (uint16_t i = 0; i< delay; i++){;}
- *
- *
- *
- *	CN10.4 (PC6) ==> Green Button increment
-  	  CN10.19 (PC7) ==> Red Button Decrement
-  	  CN10.21 (PA9) ==> Red LED 1's
-  	  CN10.23 (PA8) ==> Green LED 2's
-  	int8_t count = 1;
-  	struct btn btnUp = {HIGH,6, GPIOC};
-  	struct btn btnDown = {HIGH,7, GPIOC};
-
-  	struct btn encoderA = {HIGH, 6, GPIOC};
-  	struct btn encoderB = {HIGH, 7, GPIOC};
-  	const uint16_t delay = 2000;
- *
- *
- * */
+}

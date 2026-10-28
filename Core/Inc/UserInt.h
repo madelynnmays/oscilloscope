@@ -11,9 +11,7 @@
 #ifndef INC_USERINT_H_
 #define INC_USERINT_H_
 
-void KnobDebouce();
-
-void ButtonDebounce();
+#include "main.h"
 
 enum buttonStates {HIGH,LOW,LBD,HBD,RISE,FALL};
 struct btn
