@@ -19,9 +19,10 @@
 #define INC_TRIGGER_H_
 
 
-#include "main.h"
-#include "app_freertos.h"
+#include <stdint.h>
 #include "VoltMeasure.h"
+#include "app_freertos.h"
+
 
 enum triggerEdge {RISING,FALLING};
 

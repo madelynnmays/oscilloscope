@@ -224,12 +224,8 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
   /* Infinite loop */
-initMetaInfo();
+	initMetaInfo();
 
-sendMetaInfoWrite('8');
-sendMetaInfoWrite('=');
-sendMetaInfoWrite('=');
-sendMetaInfoWrite('D');
 for(;;)
   {
     osDelay(1);
@@ -265,10 +261,18 @@ void userIntTaskStart(void *argument)
 void voltReadingTaskStart(void *argument)
 {
   /* USER CODE BEGIN voltReadingTask */
+	uint16_t adcMVArray[120] = {0};
+	circ_bbuf_t adcBuffer = {adcMVArray,0,0,121,1};
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  uint8_t message;
+	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
+	  uint16_t adcResult = readADC();
+	  uint16_t adcResultMV = convertADCtomv(adcResult);
+	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
+
+	  osDelay(1);
   }
   /* USER CODE END voltReadingTask */
 }

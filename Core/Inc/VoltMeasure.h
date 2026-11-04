@@ -17,17 +17,17 @@
 
 //ISR to be added
 
-extern const uint16_t resolutionADC;
+extern const float resolutionADC;
 
 typedef struct {
-    uint8_t * const buffer;
+    uint16_t * const buffer;
     int head;
     int tail;
     const int maxlen;
     uint8_t overwritable;
 } circ_bbuf_t;
-int circ_bbuf_push(circ_bbuf_t *c, uint8_t data);
-int circ_bbuf_pop(circ_bbuf_t *c, uint8_t *data);
+int circ_bbuf_push(circ_bbuf_t *c, uint16_t data);
+int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data);
 //source: https://embedjournal.com/implementing-circular-buffer-embedded-c/
 
 uint16_t convertADCtomv(uint16_t ADCResult);

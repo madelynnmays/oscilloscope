@@ -9,14 +9,14 @@
 #include "VoltMeasure.h"
 #include "app_freertos.h"
 
-const uint16_t resolutionADC = 1234; //idk what it actually is
+const float resolutionADC = 1.2; //approx 1.2mv per tick
 
 uint16_t convertADCtomv(uint16_t ADCResult)
 {
 	uint16_t messagePtr;
 	osMessageQueueGet(adcStartedHandle, &messagePtr, 0,osWaitForever);
-	uint16_t adcResult = readADC();
-	return adcResult * (resolutionADC);
+	float adcResult = readADC();
+	return (uint16_t)(adcResult * (resolutionADC));
 	// also not sure if it just handles negative numbers
 }
 uint16_t readADC()
@@ -27,7 +27,7 @@ uint16_t readADC()
 
 
 //source: https://embedjournal.com/implementing-circular-buffer-embedded-c/
-int circ_bbuf_push(circ_bbuf_t *c, uint8_t data)
+int circ_bbuf_push(circ_bbuf_t *c, uint16_t data)
 {
     int next;
 
@@ -62,7 +62,7 @@ int circ_bbuf_push(circ_bbuf_t *c, uint8_t data)
     return 0;  // return success to indicate successful push.
 }
 
-int circ_bbuf_pop(circ_bbuf_t *c, uint8_t *data)
+int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data)
 {
     int next;
 
