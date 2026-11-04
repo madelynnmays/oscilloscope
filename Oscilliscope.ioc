@@ -263,6 +263,7 @@ rtos.0.ip=STMicroelectronics.X-CUBE-FREERTOS.1.6.0
 rtos.0.queues.0=allocationType,Static;bufferName,ADCreadingsBuffer01;controlBlockName,ADCreadingsControlBlock01;itemNumber,32;itemSize,uint16_t;name,ADCreadings
 rtos.0.queues.1=allocationType,Static;bufferName,time_voltagePairsBuffer02;controlBlockName,time_voltagePairsControlBlock02;itemNumber,32;itemSize,uint16_t;name,time_voltagePairs
 rtos.0.queues.2=allocationType,Static;bufferName,voltageValuesBuffer03;controlBlockName,voltageValuesControlBlock03;itemNumber,32;itemSize,uint16_t;name,voltageValues
+rtos.0.queues.3=allocationType,Static;bufferName,triggerPositionBuffer04;controlBlockName,triggerPositionControlBlock04;itemNumber,1;itemSize,uint8_t;name,triggerPosition
 rtos.0.tasks.0=allocationType,Dynamic;bufferName,NULL;codeGen,Default;controlBlockName,NULL;entry,StartDefaultTask;name,defaultTask;parameter,NULL;priority,osPriorityNormal;stackSize,128
 rtos.0.tasks.1=allocationType,Static;bufferName,MyBufferuserIntTask;codeGen,Default;controlBlockName,MycontrolBlocuserIntTask;entry,userIntTaskStart;name,userIntTask;parameter,NULL;priority,osPriorityLow;stackSize,128
 rtos.0.tasks.2=allocationType,Static;bufferName,MyBuffervoltReadingTask;codeGen,Default;controlBlockName,MycontrolBlocvoltReadingTask;entry,voltReadingTaskStart;name,voltReadingTask;parameter,NULL;priority,osPriorityLow;stackSize,128

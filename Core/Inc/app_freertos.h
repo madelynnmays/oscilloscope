@@ -60,6 +60,7 @@ extern osThreadId_t voltReadingTaskHandle;
 extern osMessageQueueId_t ADCreadingsHandle;
 extern osMessageQueueId_t time_voltagePairsHandle;
 extern osMessageQueueId_t voltageValuesHandle;
+extern osMessageQueueId_t triggerPositionHandle;
 extern osSemaphoreId_t triggerHappenedHandle;
 extern osSemaphoreId_t stopCheckingTriggerHandle;
 

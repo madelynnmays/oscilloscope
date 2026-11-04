@@ -118,6 +118,17 @@ const osMessageQueueAttr_t voltageValues_attributes = {
   .mq_mem = &voltageValuesBuffer03,
   .mq_size = sizeof(voltageValuesBuffer03)
 };
+/* Definitions for triggerPosition */
+osMessageQueueId_t triggerPositionHandle;
+uint8_t triggerPositionBuffer04[ 1 * sizeof( uint8_t ) ];
+osStaticMessageQDef_t triggerPositionControlBlock04;
+const osMessageQueueAttr_t triggerPosition_attributes = {
+  .name = "triggerPosition",
+  .cb_mem = &triggerPositionControlBlock04,
+  .cb_size = sizeof(triggerPositionControlBlock04),
+  .mq_mem = &triggerPositionBuffer04,
+  .mq_size = sizeof(triggerPositionBuffer04)
+};
 /* Definitions for triggerHappened */
 osSemaphoreId_t triggerHappenedHandle;
 osStaticSemaphoreDef_t triggerHappenedControlBlock01;
@@ -172,6 +183,8 @@ void MX_FREERTOS_Init(void) {
   time_voltagePairsHandle = osMessageQueueNew (32, sizeof(uint16_t), &time_voltagePairs_attributes);
   /* creation of voltageValues */
   voltageValuesHandle = osMessageQueueNew (32, sizeof(uint16_t), &voltageValues_attributes);
+  /* creation of triggerPosition */
+  triggerPositionHandle = osMessageQueueNew (1, sizeof(uint8_t), &triggerPosition_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
