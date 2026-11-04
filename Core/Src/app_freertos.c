@@ -22,14 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Trigger.h"
-#include "adc.h"
-#include "Formatter.h"
-#include "main.h"
-#include "Screen.h"
-#include "UserInt.h"
-#include "VoltMeasure.h"
-#include "MetaInfoDisplay.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -129,6 +122,17 @@ const osMessageQueueAttr_t triggerPosition_attributes = {
   .mq_mem = &triggerPositionBuffer04,
   .mq_size = sizeof(triggerPositionBuffer04)
 };
+/* Definitions for adcStarted */
+osMessageQueueId_t adcStartedHandle;
+uint8_t adcStartedBuffer05[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t adcStartedControlBlock05;
+const osMessageQueueAttr_t adcStarted_attributes = {
+  .name = "adcStarted",
+  .cb_mem = &adcStartedControlBlock05,
+  .cb_size = sizeof(adcStartedControlBlock05),
+  .mq_mem = &adcStartedBuffer05,
+  .mq_size = sizeof(adcStartedBuffer05)
+};
 /* Definitions for triggerHappened */
 osSemaphoreId_t triggerHappenedHandle;
 osStaticSemaphoreDef_t triggerHappenedControlBlock01;
@@ -185,6 +189,8 @@ void MX_FREERTOS_Init(void) {
   voltageValuesHandle = osMessageQueueNew (32, sizeof(uint16_t), &voltageValues_attributes);
   /* creation of triggerPosition */
   triggerPositionHandle = osMessageQueueNew (1, sizeof(uint8_t), &triggerPosition_attributes);
+  /* creation of adcStarted */
+  adcStartedHandle = osMessageQueueNew (1, sizeof(uint16_t), &adcStarted_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */

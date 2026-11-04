@@ -24,16 +24,16 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 		{
 			if(result_current > triggerLevel && triggerLevel > result_previous)
 			{
-				osSemaphoreRelease(semaphore_id)(triggerHappenedHandle, osWaitForever);
-				osSemaphoreRelease(semaphore_id)(stopCheckingTriggerHandle, osWaitForever);
+				osSemaphoreRelease(triggerHappenedHandle);
+				osSemaphoreRelease(stopCheckingTriggerHandle);
 			}
 		}
 		if(result_current < result_previous && edge == FALLING)
 		{
 			if(result_current < triggerLevel && triggerLevel < result_previous)
 			{
-				osSemaphoreRelease(triggerHappenedHandle, osWaitForever);
-				osSemaphoreRelease(stopCheckingTriggerHandle, osWaitForever);
+				osSemaphoreRelease(triggerHappenedHandle);
+				osSemaphoreRelease(stopCheckingTriggerHandle);
 			}
 		}
 
@@ -50,12 +50,13 @@ void triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint3
 	uint16_t priorResult = cbuff_results->buffer[0];
 	for(uint8_t j = 1; j < cbuff_results->maxlen; j++)
 	{
-		priorResult = triggerDetect(priorResult, cbuff_results->buffer[i],triggerLevel, edge);
-		//todo semaphore comparison
-		if(osSemaphoreAcquire(stopCheckingTriggerHandle, 15) == osOK)
+		priorResult = triggerDetect(priorResult, cbuff_results->buffer[j],triggerLevel, edge);
+
+		if(osSemaphoreAcquire(stopCheckingTriggerHandle, osWaitForever) == osOK)
 		{
 			uint8_t triggerPosition = j;
 			osMessageQueuePut(triggerPositionHandle, &triggerPosition, 0, osWaitForever);
+			osSemaphoreRelease(stopCheckingTriggerHandle);
 			break;
 		}
 

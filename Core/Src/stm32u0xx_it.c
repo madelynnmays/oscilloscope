@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32u0xx_it.h"
+#include "app_freertos.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -122,6 +123,8 @@ void TIM16_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM16_IRQn 0 */
 	LL_ADC_REG_StartConversion(ADC1);
+	uint8_t queueMessage = 1;
+	osMessageQueuePut(adcStartedHandle, &queueMessage, osPriorityNormal, 1); //will adjust this timeout time
   /* USER CODE END TIM16_IRQn 0 */
   /* USER CODE BEGIN TIM16_IRQn 1 */
 
