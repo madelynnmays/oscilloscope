@@ -19,15 +19,17 @@
 #define INC_TRIGGER_H_
 
 
-#include "main.h"
+#include <stdint.h>
+#include "VoltMeasure.h"
 #include "app_freertos.h"
+
 
 enum triggerEdge {RISING,FALLING};
 
-uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum triggerEdge edge);
+uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32_t triggerLevel, enum triggerEdge edge);
 // does trigger level lie between input n and n+1? if n+1 > n, then the edge is rising, else falling
 
-void triggerIndexParser(circ_bbuf_t *cbuff_results);
+void triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel);
 
 
 

@@ -7,16 +7,19 @@
 
 
 #include "VoltMeasure.h"
+#include "app_freertos.h"
 
-const uint16_t resolutionADC = 1234; //idk what it actually is
+const float resolutionADC = 1.2; //approx 1.2mv per tick
 
 uint16_t convertADCtomv(uint16_t ADCResult)
 {
-
-	return ADCResult * resolutionADC;
+	uint16_t messagePtr;
+	osMessageQueueGet(adcStartedHandle, &messagePtr, 0,osWaitForever);
+	float adcResult = readADC();
+	return (uint16_t)(adcResult * (resolutionADC));
 	// also not sure if it just handles negative numbers
 }
-uint16_t readADC(void)
+uint16_t readADC()
 {
 	//this func is too long so i shall rename it
 	return LL_ADC_REG_ReadConversionData12(ADC1);
@@ -24,28 +27,50 @@ uint16_t readADC(void)
 
 
 //source: https://embedjournal.com/implementing-circular-buffer-embedded-c/
-int circ_bbuf_push(circ_bbuf_t *c, uint8_t data)
+int circ_bbuf_push(circ_bbuf_t *c, uint16_t data)
 {
     int next;
 
     next = c->head + 1;  // next is where head will point to after this write.
     if (next >= c->maxlen)
-        next = 0;
+    {
+    	next = 0;
+    }
 
+    //change from src
+	//only throw error when overwritable is false
+	//else just let the head go on
     if (next == c->tail)  // if the head + 1 == tail, circular buffer is full
-        return -1;
+    {
+    	if (c->overwritable == 0)
+		{
+		return -1;
+		}
+    	else //also advance the tail, so that the tail points to the oldest data
+    	{
+    		c->tail++;
+			if (c->tail >= c->maxlen)
+			{
+				c->tail = 0;
+			}
+    	}
+    }
+
 
     c->buffer[c->head] = data;  // Load data and then move
     c->head = next;             // head to next data offset.
     return 0;  // return success to indicate successful push.
 }
 
-int circ_bbuf_pop(circ_bbuf_t *c, uint8_t *data)
+int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data)
 {
     int next;
 
-    if (c->head == c->tail)  // if the head == tail, we don't have any data
-        return -1;
+    if (c->head == c->tail)
+    {
+    	return -1;// if the head == tail, we don't have any data
+    }
+
 
     next = c->tail + 1;  // next is where tail will point to after this read.
     if(next >= c->maxlen)

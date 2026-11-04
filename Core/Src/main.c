@@ -47,7 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+const uint32_t DELAY_100us;
+const uint32_t DELAY_1ms;
+const uint32_t DELAY_10us;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

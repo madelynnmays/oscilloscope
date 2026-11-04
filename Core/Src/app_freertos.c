@@ -22,19 +22,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Trigger.h"
-#include "adc.h"
-#include "Formatter.h"
-#include "main.h"
-#include "Screen.h"
-#include "UserInt.h"
-#include "VoltMeasure.h"
-#include "MetaInfoDisplay.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
 typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
@@ -85,6 +79,26 @@ const osThreadAttr_t voltReadingTask_attributes = {
   .cb_size = sizeof(MycontrolBlocvoltReadingTask),
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for triggerHandling */
+osThreadId_t triggerHandlingHandle;
+uint32_t triggerHandlingbufferTask04[ 128 ];
+osStaticThreadDef_t triggerHandlingblocTask04;
+const osThreadAttr_t triggerHandling_attributes = {
+  .name = "triggerHandling",
+  .stack_mem = &triggerHandlingbufferTask04[0],
+  .stack_size = sizeof(triggerHandlingbufferTask04),
+  .cb_mem = &triggerHandlingblocTask04,
+  .cb_size = sizeof(triggerHandlingblocTask04),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for adcReadWrite */
+osMutexId_t adcReadWriteHandle;
+osStaticMutexDef_t adcReadWriteBlock01;
+const osMutexAttr_t adcReadWrite_attributes = {
+  .name = "adcReadWrite",
+  .cb_mem = &adcReadWriteBlock01,
+  .cb_size = sizeof(adcReadWriteBlock01),
+};
 /* Definitions for ADCreadings */
 osMessageQueueId_t ADCreadingsHandle;
 uint8_t ADCreadingsBuffer01[ 32 * sizeof( uint16_t ) ];
@@ -118,6 +132,28 @@ const osMessageQueueAttr_t voltageValues_attributes = {
   .mq_mem = &voltageValuesBuffer03,
   .mq_size = sizeof(voltageValuesBuffer03)
 };
+/* Definitions for triggerPosition */
+osMessageQueueId_t triggerPositionHandle;
+uint8_t triggerPositionBuffer04[ 1 * sizeof( uint8_t ) ];
+osStaticMessageQDef_t triggerPositionControlBlock04;
+const osMessageQueueAttr_t triggerPosition_attributes = {
+  .name = "triggerPosition",
+  .cb_mem = &triggerPositionControlBlock04,
+  .cb_size = sizeof(triggerPositionControlBlock04),
+  .mq_mem = &triggerPositionBuffer04,
+  .mq_size = sizeof(triggerPositionBuffer04)
+};
+/* Definitions for adcStarted */
+osMessageQueueId_t adcStartedHandle;
+uint8_t adcStartedBuffer05[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t adcStartedControlBlock05;
+const osMessageQueueAttr_t adcStarted_attributes = {
+  .name = "adcStarted",
+  .cb_mem = &adcStartedControlBlock05,
+  .cb_size = sizeof(adcStartedControlBlock05),
+  .mq_mem = &adcStartedBuffer05,
+  .mq_size = sizeof(adcStartedBuffer05)
+};
 /* Definitions for triggerHappened */
 osSemaphoreId_t triggerHappenedHandle;
 osStaticSemaphoreDef_t triggerHappenedControlBlock01;
@@ -149,6 +185,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* creation of adcReadWrite */
+  adcReadWriteHandle = osMutexNew(&adcReadWrite_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -172,6 +210,10 @@ void MX_FREERTOS_Init(void) {
   time_voltagePairsHandle = osMessageQueueNew (32, sizeof(uint16_t), &time_voltagePairs_attributes);
   /* creation of voltageValues */
   voltageValuesHandle = osMessageQueueNew (32, sizeof(uint16_t), &voltageValues_attributes);
+  /* creation of triggerPosition */
+  triggerPositionHandle = osMessageQueueNew (1, sizeof(uint8_t), &triggerPosition_attributes);
+  /* creation of adcStarted */
+  adcStartedHandle = osMessageQueueNew (1, sizeof(uint16_t), &adcStarted_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -184,6 +226,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of voltReadingTask */
   voltReadingTaskHandle = osThreadNew(voltReadingTaskStart, NULL, &voltReadingTask_attributes);
+
+  /* creation of triggerHandling */
+  triggerHandlingHandle = osThreadNew(triggerHandling, NULL, &triggerHandling_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -206,16 +251,19 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN defaultTask */
 	Spi_init();
   /* Infinite loop */
-initMetaInfo();
+	initMetaInfo();
 
-sendMetaInfoWrite('8');
-sendMetaInfoWrite('=');
-sendMetaInfoWrite('=');
-sendMetaInfoWrite('D');
 for(;;)
   {
-	  Spi_Format_Send();
-	  osDelay(1000);
+
+	Spi_Format_Send();
+
+
+	uint8_t index;
+	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
+	sendMetaInfoWrite(index);
+    osDelay(1);
+
   }
   /* USER CODE END defaultTask */
 }
@@ -281,12 +329,58 @@ void userIntTaskStart(void *argument)
 void voltReadingTaskStart(void *argument)
 {
   /* USER CODE BEGIN voltReadingTask */
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  uint8_t message;
+	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
+	  for (uint16_t j = 0; j< 1234; j++ )
+	  {
+		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
+	  }
+	  uint16_t adcResult = readADC();
+	  uint16_t adcResultMV = convertADCtomv(adcResult);
+	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
+	  osMutexRelease(adcReadWriteHandle);
+
+	  osDelay(1);
   }
   /* USER CODE END voltReadingTask */
+}
+
+/* USER CODE BEGIN Header_triggerHandling */
+/**
+* @brief Function implementing the triggerHandling thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_triggerHandling */
+void triggerHandling(void *argument)
+{
+  /* USER CODE BEGIN triggerHandling */
+	uint16_t adcMVArray[120] = {0};
+	circ_bbuf_t adcBuffer = {adcMVArray,0,0,121,1};
+  /* Infinite loop */
+  for(;;)
+  {
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  uint16_t adcMessage;
+	  for (uint8_t j; j < 250; j++)
+	  {
+	  osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever);
+	  circ_bbuf_push(&adcBuffer, adcMessage);
+	  }
+	  for (uint8_t i; i < 200; i++)
+	  {
+		  triggerIndexParser(&adcBuffer, RISING, 1000);
+	  }
+
+	  osMutexRelease(adcReadWriteHandle);
+    osDelay(1);
+  }
+  /* USER CODE END triggerHandling */
 }
 
 /* Private application code --------------------------------------------------*/

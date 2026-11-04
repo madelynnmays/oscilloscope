@@ -32,7 +32,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "VoltMeasure.h"
+#include "Trigger.h"
+#include "MetaInfoDisplay.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,9 +59,13 @@ extern "C" {
 extern osThreadId_t defaultTaskHandle;
 extern osThreadId_t userIntTaskHandle;
 extern osThreadId_t voltReadingTaskHandle;
+extern osThreadId_t triggerHandlingHandle;
+extern osMutexId_t adcReadWriteHandle;
 extern osMessageQueueId_t ADCreadingsHandle;
 extern osMessageQueueId_t time_voltagePairsHandle;
 extern osMessageQueueId_t voltageValuesHandle;
+extern osMessageQueueId_t triggerPositionHandle;
+extern osMessageQueueId_t adcStartedHandle;
 extern osSemaphoreId_t triggerHappenedHandle;
 extern osSemaphoreId_t stopCheckingTriggerHandle;
 
@@ -71,6 +77,7 @@ extern osSemaphoreId_t stopCheckingTriggerHandle;
 void StartDefaultTask(void *argument);
 void userIntTaskStart(void *argument);
 void voltReadingTaskStart(void *argument);
+void triggerHandling(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
