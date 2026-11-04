@@ -28,6 +28,7 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
 typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
@@ -77,6 +78,26 @@ const osThreadAttr_t voltReadingTask_attributes = {
   .cb_mem = &MycontrolBlocvoltReadingTask,
   .cb_size = sizeof(MycontrolBlocvoltReadingTask),
   .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for triggerHandling */
+osThreadId_t triggerHandlingHandle;
+uint32_t triggerHandlingbufferTask04[ 128 ];
+osStaticThreadDef_t triggerHandlingblocTask04;
+const osThreadAttr_t triggerHandling_attributes = {
+  .name = "triggerHandling",
+  .stack_mem = &triggerHandlingbufferTask04[0],
+  .stack_size = sizeof(triggerHandlingbufferTask04),
+  .cb_mem = &triggerHandlingblocTask04,
+  .cb_size = sizeof(triggerHandlingblocTask04),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for adcReadWrite */
+osMutexId_t adcReadWriteHandle;
+osStaticMutexDef_t adcReadWriteBlock01;
+const osMutexAttr_t adcReadWrite_attributes = {
+  .name = "adcReadWrite",
+  .cb_mem = &adcReadWriteBlock01,
+  .cb_size = sizeof(adcReadWriteBlock01),
 };
 /* Definitions for ADCreadings */
 osMessageQueueId_t ADCreadingsHandle;
@@ -164,6 +185,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* creation of adcReadWrite */
+  adcReadWriteHandle = osMutexNew(&adcReadWrite_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -204,6 +227,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of voltReadingTask */
   voltReadingTaskHandle = osThreadNew(voltReadingTaskStart, NULL, &voltReadingTask_attributes);
 
+  /* creation of triggerHandling */
+  triggerHandlingHandle = osThreadNew(triggerHandling, NULL, &triggerHandling_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -228,6 +254,9 @@ void StartDefaultTask(void *argument)
 
 for(;;)
   {
+	uint8_t index;
+	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
+	sendMetaInfoWrite(index);
     osDelay(1);
   }
   /* USER CODE END defaultTask */
@@ -261,20 +290,58 @@ void userIntTaskStart(void *argument)
 void voltReadingTaskStart(void *argument)
 {
   /* USER CODE BEGIN voltReadingTask */
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  uint8_t message;
+	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
+	  for (uint16_t j = 0; j< 1234; j++ )
+	  {
+		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
+	  }
+	  uint16_t adcResult = readADC();
+	  uint16_t adcResultMV = convertADCtomv(adcResult);
+	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
+	  osMutexRelease(adcReadWriteHandle);
+
+	  osDelay(1);
+  }
+  /* USER CODE END voltReadingTask */
+}
+
+/* USER CODE BEGIN Header_triggerHandling */
+/**
+* @brief Function implementing the triggerHandling thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_triggerHandling */
+void triggerHandling(void *argument)
+{
+  /* USER CODE BEGIN triggerHandling */
 	uint16_t adcMVArray[120] = {0};
 	circ_bbuf_t adcBuffer = {adcMVArray,0,0,121,1};
   /* Infinite loop */
   for(;;)
   {
-	  uint8_t message;
-	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
-	  uint16_t adcResult = readADC();
-	  uint16_t adcResultMV = convertADCtomv(adcResult);
-	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  uint16_t adcMessage;
+	  for (uint8_t j; j < 250; j++)
+	  {
+	  osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever);
+	  circ_bbuf_push(&adcBuffer, adcMessage);
+	  }
+	  for (uint8_t i; i < 200; i++)
+	  {
+		  triggerIndexParser(&adcBuffer, RISING, 1000);
+	  }
 
-	  osDelay(1);
+	  osMutexRelease(adcReadWriteHandle);
+    osDelay(1);
   }
-  /* USER CODE END voltReadingTask */
+  /* USER CODE END triggerHandling */
 }
 
 /* Private application code --------------------------------------------------*/

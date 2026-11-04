@@ -50,7 +50,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 /* USER CODE END Includes */
-#include "MetaInfoDisplay.h"
+
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
