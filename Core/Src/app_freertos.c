@@ -195,7 +195,7 @@ void StartDefaultTask(void *argument)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
-	uint16_t scale = 0;
+	uint16_t scale = 1000;
   	//struct btn btnUp = {HIGH,11, GPIOA};
   	//struct btn btnDown = {HIGH,12, GPIOA};
 
@@ -208,9 +208,9 @@ void userIntTaskStart(void *argument)
 	  btnHandler(&encoderB);
 	  if (encoderA.btnState == FALL){
 	      if ((encoderB.btnState == HIGH) || (encoderB.btnState == RISE)){
-	          if (scale < 50) scale++;
+	          if (scale < 10000) scale = scale +100;
 	      } else {
-	          if (scale > 0) scale--;
+	          if (scale > 100) scale = -100;
 	      }
 	  }
 
