@@ -21,7 +21,5 @@ struct btn
 	GPIO_TypeDef *pinGroup;
 };
 uint8_t btnHandler(struct btn *btn);
-void updateLED(uint8_t count);
-int8_t roundCount(int8_t count);
 
 #endif /* INC_USERINT_H_ */

@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Formatter.h"
+#include "Screen.h"
 #include "Userint.h"
 /* USER CODE END Includes */
 
@@ -180,8 +180,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  Spi_Format_Send();
-	  osDelay(1000);
+	    osDelay(5);
   }
   /* USER CODE END defaultTask */
 }
@@ -196,42 +195,37 @@ void StartDefaultTask(void *argument)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	uint16_t scale = 0;
+  	//struct btn btnUp = {HIGH,11, GPIOA};
+  	//struct btn btnDown = {HIGH,12, GPIOA};
 
-  	int8_t count = 1;
-  	struct btn btnUp = {HIGH,6, GPIOC};
-  	struct btn btnDown = {HIGH,7, GPIOC};
-
-  	struct btn encoderA = {HIGH, 6, GPIOC};
-  	struct btn encoderB = {HIGH, 7, GPIOC};
-  	const uint16_t delay = 2000;
-
+  	struct btn encoderA = {HIGH, 9, GPIOA};
+  	struct btn encoderB = {HIGH, 10, GPIOA};
   /* Infinite loop */
   for(;;)
   {
 	  btnHandler(&encoderA);
 	  btnHandler(&encoderB);
+	  if (encoderA.btnState == FALL){
+	      if ((encoderB.btnState == HIGH) || (encoderB.btnState == RISE)){
+	          if (scale < 50) scale++;
+	      } else {
+	          if (scale > 0) scale--;
+	      }
+	  }
 
-	  	if (encoderA.btnState == FALL){
-	  		if (encoderB.btnState == HIGH){
-	  			count++;
-	  		} else {
-	  			count--;
-	  		}
-	  	}
-
+	  /*
 	  	btnHandler(&btnUp);
-	  	btnHandler(&btnUp);
+	  	btnHandler(&btnDown);                       // was btnUp twice
 	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  	{
-	  	  count++;
+
 	  	}
 	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  	{
-	  	  count--;
+
 	  	}
-	  	count = roundCount(count);
-	  	updateLED(count);
-	  	for (uint16_t i = 0; i< delay; i++){;}
+	  	*/
     osDelay(1);
   }
   /* USER CODE END userIntTask */

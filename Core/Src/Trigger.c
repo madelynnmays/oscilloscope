@@ -43,5 +43,4 @@ uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum tri
 		//will be cleared to 0 outside this func should this be a fresh trigger check
 	}
 
-
 }

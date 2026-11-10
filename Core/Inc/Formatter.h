@@ -17,10 +17,6 @@
 #include "app_freertos.h"
 #include "main.h"
 
-void Spi_init();
-void Spi_Format_Send(/*int16_t x, int16_t y*/);
-
-
 
 
 #endif /* INC_FORMATTER_H_ */
