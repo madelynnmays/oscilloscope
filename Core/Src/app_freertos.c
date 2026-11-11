@@ -302,7 +302,6 @@ void userIntTaskStart(void *argument)
 	      }
 	  }
 
-	  	btnHandler(&btnUp);
 	  /*
 	  	btnHandler(&btnUp);
 	  	btnHandler(&btnDown);                       // was btnUp twice
