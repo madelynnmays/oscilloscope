@@ -65,7 +65,7 @@ const osThreadAttr_t userIntTask_attributes = {
   .stack_size = sizeof(MyBufferuserIntTask),
   .cb_mem = &MycontrolBlocuserIntTask,
   .cb_size = sizeof(MycontrolBlocuserIntTask),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal1,
 };
 /* Definitions for voltReadingTask */
 osThreadId_t voltReadingTaskHandle;
@@ -77,7 +77,7 @@ const osThreadAttr_t voltReadingTask_attributes = {
   .stack_size = sizeof(MyBuffervoltReadingTask),
   .cb_mem = &MycontrolBlocvoltReadingTask,
   .cb_size = sizeof(MycontrolBlocvoltReadingTask),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for triggerHandling */
 osThreadId_t triggerHandlingHandle;
@@ -89,7 +89,7 @@ const osThreadAttr_t triggerHandling_attributes = {
   .stack_size = sizeof(triggerHandlingbufferTask04),
   .cb_mem = &triggerHandlingblocTask04,
   .cb_size = sizeof(triggerHandlingblocTask04),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal7,
 };
 /* Definitions for adcReadWrite */
 osMutexId_t adcReadWriteHandle;
@@ -254,9 +254,7 @@ void StartDefaultTask(void *argument)
 
 for(;;)
   {
-	uint8_t index;
-	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
-	sendMetaInfoWrite(index);
+
     osDelay(1);
   }
   /* USER CODE END defaultTask */
@@ -275,7 +273,10 @@ void userIntTaskStart(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	uint8_t index;
+	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
+	sendMetaInfoWrite(index+48);
+	osDelay(1);
   }
   /* USER CODE END userIntTask */
 }
@@ -294,17 +295,19 @@ void voltReadingTaskStart(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
-	  uint8_t message;
+
+	  uint16_t message;
 	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
 	  for (uint16_t j = 0; j< 1234; j++ )
 	  {
 		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
 	  }
 	  uint16_t adcResult = readADC();
+	  osMutexRelease(adcReadWriteHandle);
 	  uint16_t adcResultMV = convertADCtomv(adcResult);
 	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
-	  osMutexRelease(adcReadWriteHandle);
+
 
 	  osDelay(1);
   }
@@ -326,7 +329,7 @@ void triggerHandling(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  //osMutexAcquire(adcReadWriteHandle, osWaitForever);
 	  uint16_t adcMessage;
 	  for (uint8_t j; j < 250; j++)
 	  {
@@ -338,7 +341,7 @@ void triggerHandling(void *argument)
 		  triggerIndexParser(&adcBuffer, RISING, 1000);
 	  }
 
-	  osMutexRelease(adcReadWriteHandle);
+	  //osMutexRelease(adcReadWriteHandle);
     osDelay(1);
   }
   /* USER CODE END triggerHandling */
