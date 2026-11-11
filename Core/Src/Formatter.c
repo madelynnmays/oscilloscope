@@ -8,77 +8,19 @@
 //nick
 #include "Formatter.h"
 
-// jargon code for spi
-void Spi_init(void)
-{
-	GPIOA->ODR |= GPIO_PIN_4;
-	uint8_t Array_setup[] = {0x40, 0xa1, 0xc0, 0xa4, 0xa6, 0xa2, 0x2f, 0x27, 0x81, 0x10, 0xfa, 0x90, 0xaf};
-	GPIOA->ODR |= GPIO_PIN_5;
-	GPIOA->ODR |= GPIO_PIN_8;
-	osDelay(200);
+static const uint8_t sineWave[64] = {
+	  128, 140, 152, 165, 176, 188, 198, 208,
+	  218, 226, 234, 240, 245, 250, 253, 254,
+	  255, 254, 253, 250, 245, 240, 234, 226,
+	  218, 208, 198, 188, 176, 165, 152, 140,
+	  128, 115, 103,  90,  79,  67,  57,  47,
+	   37,  29,  21,  15,  10,   5,   2,   1,
+	    0,   1,   2,   5,  10,  15,  21,  29,
+	   37,  47,  57,  67,  79,  90, 103, 115
+	}; //test print and example adc values
 
-	GPIOA->ODR &= ~GPIO_PIN_8; // D/C low: command mode
-	for(int i=0; i < 13; i++){
-		GPIOA->ODR &= ~GPIO_PIN_5; //CS low
-		LL_SPI_TransmitData8(SPI1, Array_setup[i]);
-		osDelay(200);
-		GPIOA->ODR |= GPIO_PIN_5;
-	}
-	GPIOA->ODR |= GPIO_PIN_8;
+
+void Adjust_adc_values(){
+
 }
 
-void Spi_Format_Send(/*int x, int y*/){
-
-    for (uint8_t page = 0; page < 8; page++) {
-
-        // Step A: Set Address Coordinates
-        GPIOA->ODR &= ~GPIO_PIN_8; // CD Low -> Command Mode
-        GPIOA->ODR &= ~GPIO_PIN_5; // CS Low
-
-        while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-        LL_SPI_TransmitData8(SPI1, 0xB0 + page); // Set Current Page (0xB0 to 0xB7)
-        osDelay(1000);
-
-        GPIOA->ODR |= GPIO_PIN_8;
-        GPIOA->ODR |= GPIO_PIN_5;
-        GPIOA->ODR &= ~GPIO_PIN_5; // CS Low
-        GPIOA->ODR &= ~GPIO_PIN_8;
-
-        while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-        LL_SPI_TransmitData8(SPI1, 0x10);        // Column High Nibble = 0
-        osDelay(1000);
-
-        GPIOA->ODR |= GPIO_PIN_8;
-        GPIOA->ODR |= GPIO_PIN_5;
-        GPIOA->ODR &= ~GPIO_PIN_5;
-        GPIOA->ODR &= ~GPIO_PIN_8;
-
-        while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-        LL_SPI_TransmitData8(SPI1, 0x00);        // Column Low Nibble = 0
-        osDelay(1000);
-
-        GPIOA->ODR |= GPIO_PIN_8;
-        GPIOA->ODR |= GPIO_PIN_5;
-        GPIOA->ODR &= ~GPIO_PIN_5;
-        GPIOA->ODR &= ~GPIO_PIN_8;
-
-        while (LL_SPI_IsActiveFlag_BSY(SPI1));   // Wait for address commands to land
-        GPIOA->ODR |= GPIO_PIN_5;                // CS High
-        // Step B: Blast Raw Solid Pixels across all 102 horizontal points
-        GPIOA->ODR |= GPIO_PIN_8;  // CD High -> Data Mode
-
-        osDelay(1000);
-
-        for (uint8_t col = 0; col < 120; col++) {
-        	GPIOA->ODR &= ~GPIO_PIN_5; // CS Low
-            while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-            LL_SPI_TransmitData8(SPI1, 0x0f);    // 0xFF forces all 8 vertical pixels ON
-            osDelay(50);
-            GPIOA->ODR |= GPIO_PIN_5;
-
-        }
-
-        while (LL_SPI_IsActiveFlag_BSY(SPI1));   // Wait for page row transfer complete
-        GPIOA->ODR |= GPIO_PIN_5;                // CS High
-    }
-}

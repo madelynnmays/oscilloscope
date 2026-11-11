@@ -23,6 +23,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "Screen.h"
+#include "Userint.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -256,6 +259,7 @@ void StartDefaultTask(void *argument)
 for(;;)
   {
 
+
 	Spi_Format_Send();
 
 
@@ -263,6 +267,7 @@ for(;;)
 	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
 	sendMetaInfoWrite(index);
     osDelay(1);
+
 
   }
   /* USER CODE END defaultTask */
@@ -278,42 +283,38 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	uint16_t scale = 1000;
+  	//struct btn btnUp = {HIGH,11, GPIOA};
+  	//struct btn btnDown = {HIGH,12, GPIOA};
 
-  	int8_t count = 1;
-  	struct btn btnUp = {HIGH,6, GPIOC};
-  	struct btn btnDown = {HIGH,7, GPIOC};
-
-  	struct btn encoderA = {HIGH, 6, GPIOC};
-  	struct btn encoderB = {HIGH, 7, GPIOC};
-  	const uint16_t delay = 2000;
-
+  	struct btn encoderA = {HIGH, 9, GPIOA};
+  	struct btn encoderB = {HIGH, 10, GPIOA};
   /* Infinite loop */
   for(;;)
   {
 	  btnHandler(&encoderA);
 	  btnHandler(&encoderB);
-
-	  	if (encoderA.btnState == FALL){
-	  		if (encoderB.btnState == HIGH){
-	  			count++;
-	  		} else {
-	  			count--;
-	  		}
-	  	}
+	  if (encoderA.btnState == FALL){
+	      if ((encoderB.btnState == HIGH) || (encoderB.btnState == RISE)){
+	          if (scale < 10000) scale = scale +100;
+	      } else {
+	          if (scale > 100) scale = -100;
+	      }
+	  }
 
 	  	btnHandler(&btnUp);
+	  /*
 	  	btnHandler(&btnUp);
+	  	btnHandler(&btnDown);                       // was btnUp twice
 	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  	{
-	  	  count++;
+
 	  	}
 	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  	{
-	  	  count--;
+
 	  	}
-	  	count = roundCount(count);
-	  	updateLED(count);
-	  	for (uint16_t i = 0; i< delay; i++){;}
+	  	*/
     osDelay(1);
   }
   /* USER CODE END userIntTask */
