@@ -41,7 +41,6 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 		//will be cleared to 0 outside this func should this be a fresh trigger check
 
 
-
 }
 
 

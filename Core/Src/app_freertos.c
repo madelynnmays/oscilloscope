@@ -23,6 +23,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "Screen.h"
+#include "Userint.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -249,13 +252,25 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
+	Spi_init();
   /* Infinite loop */
 	initMetaInfo();
 
 for(;;)
   {
 
+
+
+	Spi_Format_Send();
+
+
+	uint8_t index;
+	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
+	sendMetaInfoWrite(index);
+
     osDelay(1);
+
+
   }
   /* USER CODE END defaultTask */
 }
@@ -270,13 +285,45 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	uint16_t scale = 1000;
+  	//struct btn btnUp = {HIGH,11, GPIOA};
+  	//struct btn btnDown = {HIGH,12, GPIOA};
+
+  	struct btn encoderA = {HIGH, 9, GPIOA};
+  	struct btn encoderB = {HIGH, 10, GPIOA};
   /* Infinite loop */
   for(;;)
   {
+
 	uint8_t index;
 	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
 	sendMetaInfoWrite(index+48);
 	osDelay(1);
+
+	  btnHandler(&encoderA);
+	  btnHandler(&encoderB);
+	  if (encoderA.btnState == FALL){
+	      if ((encoderB.btnState == HIGH) || (encoderB.btnState == RISE)){
+	          if (scale < 10000) scale = scale +100;
+	      } else {
+	          if (scale > 100) scale = -100;
+	      }
+	  }
+
+	  /*
+	  	btnHandler(&btnUp);
+	  	btnHandler(&btnDown);                       // was btnUp twice
+	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
+	  	{
+
+	  	}
+	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
+	  	{
+
+	  	}
+	  	*/
+    osDelay(1);
+
   }
   /* USER CODE END userIntTask */
 }
