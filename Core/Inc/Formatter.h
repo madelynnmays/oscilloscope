@@ -17,6 +17,7 @@
 #include "app_freertos.h"
 #include "main.h"
 
-
+uint16_t scale_amplitude();
+uint16_t scale_period();
 
 #endif /* INC_FORMATTER_H_ */
