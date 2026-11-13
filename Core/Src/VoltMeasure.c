@@ -7,12 +7,77 @@
 
 
 #include "VoltMeasure.h"
+#include "app_freertos.h"
 
-const uint16_t resolutionADC = 1234; //idk what it actually is
+
 
 uint16_t convertADCtomv(uint16_t ADCResult)
 {
-
-	return ADCResult * resolutionADC;
+	const float resolutionADC = 0.8; //approx 1.2mv per tick
+	return (uint16_t)(ADCResult * (resolutionADC));
 	// also not sure if it just handles negative numbers
 }
+uint16_t readADC()
+{
+	//this func is too long so i shall rename it
+	return LL_ADC_REG_ReadConversionData12(ADC1);
+}
+
+
+//source: https://embedjournal.com/implementing-circular-buffer-embedded-c/
+int circ_bbuf_push(circ_bbuf_t *c, uint16_t data)
+{
+    int next;
+
+    next = c->head + 1;  // next is where head will point to after this write.
+    if (next >= c->maxlen)
+    {
+    	next = 0;
+    }
+
+    //change from src
+	//only throw error when overwritable is false
+	//else just let the head go on
+    if (next == c->tail)  // if the head + 1 == tail, circular buffer is full
+    {
+    	if (c->overwritable == 0)
+		{
+		return -1;
+		}
+    	else //also advance the tail, so that the tail points to the oldest data
+    	{
+    		c->tail++;
+			if (c->tail >= c->maxlen)
+			{
+				c->tail = 0;
+			}
+			c->full = 1; //if the head has overwritten data, flag as full
+    	}
+    }
+
+
+    c->buffer[c->head] = data;  // Load data and then move
+    c->head = next;             // head to next data offset.
+    return 0;  // return success to indicate successful push.
+}
+
+int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data)
+{
+    int next;
+
+    if (c->head == c->tail)
+    {
+    	return -1;// if the head == tail, we don't have any data
+    }
+
+
+    next = c->tail + 1;  // next is where tail will point to after this read.
+    if(next >= c->maxlen)
+        next = 0;
+
+    *data = c->buffer[c->tail];  // Read data and then move
+    c->tail = next;              // tail to next offset.
+    return 0;  // return success to indicate successful push.
+}
+
+

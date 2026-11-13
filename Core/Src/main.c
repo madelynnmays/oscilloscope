@@ -47,7 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+const uint32_t DELAY_100us;
+const uint32_t DELAY_1ms;
+const uint32_t DELAY_10us;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +99,8 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   LL_SPI_Enable(SPI1);
+  LL_ADC_Enable(ADC1);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

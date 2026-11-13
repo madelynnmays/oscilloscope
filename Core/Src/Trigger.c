@@ -9,38 +9,56 @@
 #include "Trigger.h"
 
 
-uint16_t triggerDetect(uint16_t result_previous, uint32_t triggerLevel, enum triggerEdge edge)
+uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32_t triggerLevel, enum triggerEdge edge)
 {
 
-	uint16_t result_current;
 
+	osSemaphoreAcquire(triggerHappenedHandle, osWaitForever);
+	osSemaphoreAcquire(stopCheckingTriggerHandle, osWaitForever);
 	//result previous is reading n-1
 	//result current is reading n
-	if (osMessageQueueGet(voltReadingTaskHandle, &result_current, 0, 100) == osOK)
-	{
 
-		if(result_current > result_previous && edge == RISE)
+
+
+		if(result_current > result_previous && edge == RISING)
 		{
 			if(result_current > triggerLevel && triggerLevel > result_previous)
 			{
-				//TODO
-				//raise a semaphore
+				osSemaphoreRelease(triggerHappenedHandle);
+				osSemaphoreRelease(stopCheckingTriggerHandle);
 			}
 		}
-		else if(result_current < result_previous && edge == FALL)
+		if(result_current < result_previous && edge == FALLING)
 		{
 			if(result_current < triggerLevel && triggerLevel < result_previous)
 			{
-				//TODO
-				//raise a semaphore
+				osSemaphoreRelease(triggerHappenedHandle);
+				osSemaphoreRelease(stopCheckingTriggerHandle);
 			}
 		}
 
-
-
-
 		return result_current; //to be fed back in the next time we call this
 		//will be cleared to 0 outside this func should this be a fresh trigger check
+
+
+}
+
+
+uint8_t triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel)
+{
+	uint16_t priorResult = cbuff_results->buffer[0];
+	for(uint8_t j = 1; j < cbuff_results->maxlen; j++)
+	{
+		priorResult = triggerDetect(priorResult, cbuff_results->buffer[j],triggerLevel, edge);
+
+		if(osSemaphoreAcquire(stopCheckingTriggerHandle, 0) == osOK)
+		{
+			uint8_t triggerPosition = j;
+			osSemaphoreRelease(stopCheckingTriggerHandle);
+			return triggerPosition;
+		}
+
 	}
+	return 0; // assume trigger never happens at array 0 which i do believe is impossible
 
 }
