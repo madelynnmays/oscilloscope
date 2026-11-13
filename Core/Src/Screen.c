@@ -82,7 +82,7 @@ void PlotDataPoints(uint8_t y){
 			LL_SPI_TransmitData8(SPI1, y);
 			while (LL_SPI_IsActiveFlag_BSY(SPI1));
 			GPIOA->ODR |= GPIO_PIN_5; //cs low
-			uint8_t lastpage = pageformat;
+			lastpage = pageformat;
 		}
 	}
 }

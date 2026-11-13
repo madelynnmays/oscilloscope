@@ -334,12 +334,17 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
-	uint16_t scale = 1000;
-  	//struct btn btnUp = {HIGH,11, GPIOA};
-  	//struct btn btnDown = {HIGH,12, GPIOA};
+	uint16_t scale_x = 1000;
+	uint16_t scale_y = 100;
+  	struct btn btnUp = {HIGH,11, GPIOA}; // need to check gpio pins for these
+  	struct btn btnDown = {HIGH,12, GPIOA};
 
-  	struct btn encoderA = {HIGH, 9, GPIOA};
-  	struct btn encoderB = {HIGH, 10, GPIOA};
+  	struct btn encoder_x_up = {HIGH, 9, GPIOA}; // need to setup another encoder
+  	struct btn encoder_x_down = {HIGH, 10, GPIOA};
+
+  	//struct btn encoder_y_up = {HIGH, 13, GPIOA};
+  	//struct btn encoder_y_down = {HIGH, 14, GPIOA};
+
   /* Infinite loop */
   for(;;)
   {
@@ -353,28 +358,30 @@ void userIntTaskStart(void *argument)
 
 
 
-	  btnHandler(&encoderA);
-	  btnHandler(&encoderB);
-	  if (encoderA.btnState == FALL){
-	      if ((encoderB.btnState == HIGH) || (encoderB.btnState == RISE)){
-	          if (scale < 10000) scale = scale +100;
+	  btnHandler(&encoder_x_up);
+	  btnHandler(&encoder_x_down);
+	  if (encoder_x_up.btnState == FALL){
+	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
+	          if (scale_x < 10000) scale_x = scale_x +100;
 	      } else {
-	          if (scale > 100) scale = -100;
+	          if (scale_x > 100) scale_x = -100;
 	      }
 	  }
 
-	  /*
+
 	  	btnHandler(&btnUp);
 	  	btnHandler(&btnDown);                       // was btnUp twice
 	  	if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  	{
-
+	  		;
 	  	}
 	  	else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  	{
-
+	  		;
 	  	}
-	  	*/
+	  	osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, osWaitForever);
+	  	osMessageQueuePut(verticalScaleHandle, &scale_y, 0, osWaitForever);
+
     osDelay(1);
 
   }
