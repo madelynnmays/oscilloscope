@@ -42,7 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+volatile osStatus_t adcQueueStatus;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,8 +123,10 @@ void TIM16_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM16_IRQn 0 */
 	LL_ADC_REG_StartConversion(ADC1);
-	uint8_t queueMessage = 1;
-	osMessageQueuePut(adcStartedHandle, &queueMessage, osPriorityNormal, 1); //will adjust this timeout time
+	uint16_t queueMessage = 1;
+	osMessageQueuePut(adcStartedHandle, &queueMessage, 0, 0);
+	//LL_TIM_ClearFlag_UPDATE(TIM16);
+	TIM16->SR = ~TIM_SR_UIF;
   /* USER CODE END TIM16_IRQn 0 */
   /* USER CODE BEGIN TIM16_IRQn 1 */
 

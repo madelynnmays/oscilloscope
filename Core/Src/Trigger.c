@@ -44,21 +44,21 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 }
 
 
-void triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel)
+uint8_t triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel)
 {
 	uint16_t priorResult = cbuff_results->buffer[0];
 	for(uint8_t j = 1; j < cbuff_results->maxlen; j++)
 	{
 		priorResult = triggerDetect(priorResult, cbuff_results->buffer[j],triggerLevel, edge);
 
-		if(osSemaphoreAcquire(stopCheckingTriggerHandle, osWaitForever) == osOK)
+		if(osSemaphoreAcquire(stopCheckingTriggerHandle, 0) == osOK)
 		{
 			uint8_t triggerPosition = j;
-			osMessageQueuePut(triggerPositionHandle, &triggerPosition, 0, osWaitForever);
 			osSemaphoreRelease(stopCheckingTriggerHandle);
-			break;
+			return triggerPosition;
 		}
 
 	}
+	return 0; // assume trigger never happens at array 0 which i do believe is impossible
 
 }

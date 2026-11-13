@@ -68,7 +68,7 @@ const osThreadAttr_t userIntTask_attributes = {
   .stack_size = sizeof(MyBufferuserIntTask),
   .cb_mem = &MycontrolBlocuserIntTask,
   .cb_size = sizeof(MycontrolBlocuserIntTask),
-  .priority = (osPriority_t) osPriorityNormal1,
+  .priority = (osPriority_t) osPriorityNormal4,
 };
 /* Definitions for voltReadingTask */
 osThreadId_t voltReadingTaskHandle;
@@ -80,7 +80,7 @@ const osThreadAttr_t voltReadingTask_attributes = {
   .stack_size = sizeof(MyBuffervoltReadingTask),
   .cb_mem = &MycontrolBlocvoltReadingTask,
   .cb_size = sizeof(MycontrolBlocvoltReadingTask),
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .priority = (osPriority_t) osPriorityNormal3,
 };
 /* Definitions for triggerHandling */
 osThreadId_t triggerHandlingHandle;
@@ -92,7 +92,7 @@ const osThreadAttr_t triggerHandling_attributes = {
   .stack_size = sizeof(triggerHandlingbufferTask04),
   .cb_mem = &triggerHandlingblocTask04,
   .cb_size = sizeof(triggerHandlingblocTask04),
-  .priority = (osPriority_t) osPriorityNormal7,
+  .priority = (osPriority_t) osPriorityNormal2,
 };
 /* Definitions for adcReadWrite */
 osMutexId_t adcReadWriteHandle;
@@ -104,7 +104,7 @@ const osMutexAttr_t adcReadWrite_attributes = {
 };
 /* Definitions for ADCreadings */
 osMessageQueueId_t ADCreadingsHandle;
-uint8_t ADCreadingsBuffer01[ 32 * sizeof( uint16_t ) ];
+uint8_t ADCreadingsBuffer01[ 100 * sizeof( uint16_t ) ];
 osStaticMessageQDef_t ADCreadingsControlBlock01;
 const osMessageQueueAttr_t ADCreadings_attributes = {
   .name = "ADCreadings",
@@ -157,6 +157,50 @@ const osMessageQueueAttr_t adcStarted_attributes = {
   .mq_mem = &adcStartedBuffer05,
   .mq_size = sizeof(adcStartedBuffer05)
 };
+/* Definitions for triggerLevel */
+osMessageQueueId_t triggerLevelHandle;
+uint8_t triggerLevelBuffer06[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t triggerLevelControlBlock06;
+const osMessageQueueAttr_t triggerLevel_attributes = {
+  .name = "triggerLevel",
+  .cb_mem = &triggerLevelControlBlock06,
+  .cb_size = sizeof(triggerLevelControlBlock06),
+  .mq_mem = &triggerLevelBuffer06,
+  .mq_size = sizeof(triggerLevelBuffer06)
+};
+/* Definitions for horizontalScale */
+osMessageQueueId_t horizontalScaleHandle;
+uint8_t horizontalScaleBuffer07[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t horizontalScaleControlBlock07;
+const osMessageQueueAttr_t horizontalScale_attributes = {
+  .name = "horizontalScale",
+  .cb_mem = &horizontalScaleControlBlock07,
+  .cb_size = sizeof(horizontalScaleControlBlock07),
+  .mq_mem = &horizontalScaleBuffer07,
+  .mq_size = sizeof(horizontalScaleBuffer07)
+};
+/* Definitions for verticalScale */
+osMessageQueueId_t verticalScaleHandle;
+uint8_t verticalScaleBuffer08[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t verticalScaleControlBlock08;
+const osMessageQueueAttr_t verticalScale_attributes = {
+  .name = "verticalScale",
+  .cb_mem = &verticalScaleControlBlock08,
+  .cb_size = sizeof(verticalScaleControlBlock08),
+  .mq_mem = &verticalScaleBuffer08,
+  .mq_size = sizeof(verticalScaleBuffer08)
+};
+/* Definitions for triggerEdge */
+osMessageQueueId_t triggerEdgeHandle;
+uint8_t triggerEdgeBuffer09[ 1 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t triggerEdgeControlBlock09;
+const osMessageQueueAttr_t triggerEdge_attributes = {
+  .name = "triggerEdge",
+  .cb_mem = &triggerEdgeControlBlock09,
+  .cb_size = sizeof(triggerEdgeControlBlock09),
+  .mq_mem = &triggerEdgeBuffer09,
+  .mq_size = sizeof(triggerEdgeBuffer09)
+};
 /* Definitions for triggerHappened */
 osSemaphoreId_t triggerHappenedHandle;
 osStaticSemaphoreDef_t triggerHappenedControlBlock01;
@@ -208,7 +252,7 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
   /* creation of ADCreadings */
-  ADCreadingsHandle = osMessageQueueNew (32, sizeof(uint16_t), &ADCreadings_attributes);
+  ADCreadingsHandle = osMessageQueueNew (100, sizeof(uint16_t), &ADCreadings_attributes);
   /* creation of time_voltagePairs */
   time_voltagePairsHandle = osMessageQueueNew (32, sizeof(uint16_t), &time_voltagePairs_attributes);
   /* creation of voltageValues */
@@ -217,6 +261,14 @@ void MX_FREERTOS_Init(void) {
   triggerPositionHandle = osMessageQueueNew (1, sizeof(uint8_t), &triggerPosition_attributes);
   /* creation of adcStarted */
   adcStartedHandle = osMessageQueueNew (1, sizeof(uint16_t), &adcStarted_attributes);
+  /* creation of triggerLevel */
+  triggerLevelHandle = osMessageQueueNew (1, sizeof(uint16_t), &triggerLevel_attributes);
+  /* creation of horizontalScale */
+  horizontalScaleHandle = osMessageQueueNew (1, sizeof(uint16_t), &horizontalScale_attributes);
+  /* creation of verticalScale */
+  verticalScaleHandle = osMessageQueueNew (1, sizeof(uint16_t), &verticalScale_attributes);
+  /* creation of triggerEdge */
+  triggerEdgeHandle = osMessageQueueNew (1, sizeof(uint16_t), &triggerEdge_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -253,20 +305,17 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
 	Spi_init();
+	LL_TIM_ClearFlag_UPDATE(TIM16);
+	LL_TIM_EnableIT_UPDATE(TIM16);
+	LL_TIM_EnableCounter(TIM16);
   /* Infinite loop */
 	initMetaInfo();
+	sendMetaInfoWrite('B');
 
 for(;;)
   {
 
-
-
-	Spi_Format_Send();
-
-
-	uint8_t index;
-	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
-	sendMetaInfoWrite(index);
+	//Spi_Format_Send();
 
     osDelay(1);
 
@@ -296,9 +345,13 @@ void userIntTaskStart(void *argument)
   {
 
 	uint8_t index;
-	osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
-	sendMetaInfoWrite(index+48);
-	osDelay(1);
+	if (osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever) == osOK)
+		{
+			//sendMetaInfoWrite(index + 48);
+			sendMetaInfoWrite('T');
+		}
+
+
 
 	  btnHandler(&encoderA);
 	  btnHandler(&encoderB);
@@ -345,8 +398,10 @@ void voltReadingTaskStart(void *argument)
 
 	  uint16_t message;
 	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
+
 	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
-	  for (uint16_t j = 0; j< 1234; j++ )
+
+	  for (uint32_t j = 0; j< 123456; j++ )
 	  {
 		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
 	  }
@@ -355,8 +410,6 @@ void voltReadingTaskStart(void *argument)
 	  uint16_t adcResultMV = convertADCtomv(adcResult);
 	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
 
-
-	  osDelay(1);
   }
   /* USER CODE END voltReadingTask */
 }
@@ -371,24 +424,36 @@ void voltReadingTaskStart(void *argument)
 void triggerHandling(void *argument)
 {
   /* USER CODE BEGIN triggerHandling */
-	uint16_t adcMVArray[120] = {0};
-	circ_bbuf_t adcBuffer = {adcMVArray,0,0,121,1};
+	uint16_t adcMVArray[100] = {0};
+	circ_bbuf_t adcBuffer = {adcMVArray,0,0,100,1,0};
   /* Infinite loop */
   for(;;)
   {
-	  //osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+	  //this task is lower priority than voltReading
+	  //thus the first time we get here, the ADCreadingsHandle queue is full
+	  //take the mutex, empty the queue, then continue
+
 	  uint16_t adcMessage;
-	  for (uint8_t j; j < 250; j++)
+	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, 0) == osOK)
 	  {
-	  osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever);
-	  circ_bbuf_push(&adcBuffer, adcMessage);
-	  }
-	  for (uint8_t i; i < 200; i++)
-	  {
-		  triggerIndexParser(&adcBuffer, RISING, 1000);
+		  circ_bbuf_push(&adcBuffer, adcMessage);
+
 	  }
 
-	  //osMutexRelease(adcReadWriteHandle);
+	  if (adcBuffer.full)
+	  {
+		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 250);
+		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
+		  adcBuffer.full = 0;
+		  sendMetaInfoWrite('t');
+
+	  }
+	  if(osMessageQueueGetCount(ADCreadingsHandle) == 0) //once we've emptied the queue, release
+	  {
+		  osMutexRelease(adcReadWriteHandle);
+	  }
+
     osDelay(1);
   }
   /* USER CODE END triggerHandling */

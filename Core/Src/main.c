@@ -99,6 +99,8 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   LL_SPI_Enable(SPI1);
+  LL_ADC_Enable(ADC1);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

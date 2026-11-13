@@ -66,6 +66,10 @@ extern osMessageQueueId_t time_voltagePairsHandle;
 extern osMessageQueueId_t voltageValuesHandle;
 extern osMessageQueueId_t triggerPositionHandle;
 extern osMessageQueueId_t adcStartedHandle;
+extern osMessageQueueId_t triggerLevelHandle;
+extern osMessageQueueId_t horizontalScaleHandle;
+extern osMessageQueueId_t verticalScaleHandle;
+extern osMessageQueueId_t triggerEdgeHandle;
 extern osSemaphoreId_t triggerHappenedHandle;
 extern osSemaphoreId_t stopCheckingTriggerHandle;
 

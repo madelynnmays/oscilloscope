@@ -25,6 +25,7 @@ typedef struct {
     int tail;
     const int maxlen;
     uint8_t overwritable;
+    uint8_t full; //
 } circ_bbuf_t;
 int circ_bbuf_push(circ_bbuf_t *c, uint16_t data);
 int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data);

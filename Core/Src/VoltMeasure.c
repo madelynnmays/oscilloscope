@@ -9,14 +9,12 @@
 #include "VoltMeasure.h"
 #include "app_freertos.h"
 
-const float resolutionADC = 1.2; //approx 1.2mv per tick
+
 
 uint16_t convertADCtomv(uint16_t ADCResult)
 {
-	uint16_t messagePtr;
-	osMessageQueueGet(adcStartedHandle, &messagePtr, 0,osWaitForever);
-	float adcResult = readADC();
-	return (uint16_t)(adcResult * (resolutionADC));
+	const float resolutionADC = 0.8; //approx 1.2mv per tick
+	return (uint16_t)(ADCResult * (resolutionADC));
 	// also not sure if it just handles negative numbers
 }
 uint16_t readADC()
@@ -53,6 +51,7 @@ int circ_bbuf_push(circ_bbuf_t *c, uint16_t data)
 			{
 				c->tail = 0;
 			}
+			c->full = 1; //if the head has overwritten data, flag as full
     	}
     }
 
