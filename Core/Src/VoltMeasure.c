@@ -13,7 +13,7 @@
 
 uint16_t convertADCtomv(uint16_t ADCResult)
 {
-	const float resolutionADC = 0.8; //approx 1.2mv per tick
+	const float resolutionADC = 0.8; //approx 0.8mv per tick
 	return (uint16_t)(ADCResult * (resolutionADC));
 	// also not sure if it just handles negative numbers
 }

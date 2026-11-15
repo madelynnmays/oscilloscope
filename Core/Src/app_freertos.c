@@ -60,7 +60,7 @@ const osThreadAttr_t defaultTask_attributes = {
 };
 /* Definitions for userIntTask */
 osThreadId_t userIntTaskHandle;
-uint32_t MyBufferuserIntTask[ 128 ];
+uint32_t MyBufferuserIntTask[ 256 ];
 osStaticThreadDef_t MycontrolBlocuserIntTask;
 const osThreadAttr_t userIntTask_attributes = {
   .name = "userIntTask",
@@ -84,7 +84,7 @@ const osThreadAttr_t voltReadingTask_attributes = {
 };
 /* Definitions for triggerHandling */
 osThreadId_t triggerHandlingHandle;
-uint32_t triggerHandlingbufferTask04[ 128 ];
+uint32_t triggerHandlingbufferTask04[ 256 ];
 osStaticThreadDef_t triggerHandlingblocTask04;
 const osThreadAttr_t triggerHandling_attributes = {
   .name = "triggerHandling",
@@ -399,14 +399,14 @@ void voltReadingTaskStart(void *argument)
 	  uint16_t message;
 	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
 
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+
 
 	  for (uint32_t j = 0; j< 123456; j++ )
 	  {
 		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
 	  }
 	  uint16_t adcResult = readADC();
-	  osMutexRelease(adcReadWriteHandle);
+
 	  uint16_t adcResultMV = convertADCtomv(adcResult);
 	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
 
@@ -426,35 +426,37 @@ void triggerHandling(void *argument)
   /* USER CODE BEGIN triggerHandling */
 	uint16_t adcMVArray[100] = {0};
 	circ_bbuf_t adcBuffer = {adcMVArray,0,0,100,1,0};
+	uint8_t samplesTaken = 0;
+	uint8_t triggerLevel = 0;
+	enum triggerEdge triggerEdge = RISING;
+
   /* Infinite loop */
   for(;;)
   {
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
-	  //this task is lower priority than voltReading
-	  //thus the first time we get here, the ADCreadingsHandle queue is full
-	  //take the mutex, empty the queue, then continue
+
+	  osMessageQueueGet(triggerLevelHandle, &triggerLevel, 0, 0); //if there is something in this queue, the trigger level has changed
+	  osMessageQueueGet(triggerEdgeHandle, &triggerEdge, 0, 0); //if there is something here, trigger edge has changed
 
 	  uint16_t adcMessage;
-	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, 0) == osOK)
+	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever) == osOK)
 	  {
 		  circ_bbuf_push(&adcBuffer, adcMessage);
+		  samplesTaken++;
 
 	  }
 
-	  if (adcBuffer.full)
+	  if (samplesTaken >= 100)
 	  {
-		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 250);
+		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 350);
+		  samplesTaken = 0;
 		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
-		  adcBuffer.full = 0;
+
 		  sendMetaInfoWrite('t');
 
 	  }
-	  if(osMessageQueueGetCount(ADCreadingsHandle) == 0) //once we've emptied the queue, release
-	  {
-		  osMutexRelease(adcReadWriteHandle);
-	  }
 
-    osDelay(1);
+
+
   }
   /* USER CODE END triggerHandling */
 }
