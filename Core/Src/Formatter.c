@@ -8,19 +8,16 @@
 //nick
 #include "Formatter.h"
 
-static const uint8_t sineWave[64] = {
-	  128, 140, 152, 165, 176, 188, 198, 208,
-	  218, 226, 234, 240, 245, 250, 253, 254,
-	  255, 254, 253, 250, 245, 240, 234, 226,
-	  218, 208, 198, 188, 176, 165, 152, 140,
-	  128, 115, 103,  90,  79,  67,  57,  47,
-	   37,  29,  21,  15,  10,   5,   2,   1,
-	    0,   1,   2,   5,  10,  15,  21,  29,
-	   37,  47,  57,  67,  79,  90, 103, 115
-	}; //test print and example adc values
-
-
-void Adjust_adc_values(){
-
+uint16_t scale_amplitude(){
+	uint16_t scaley;
+	uint16_t amp_enc_value = osMessageQueueGet(horizontalScaleHandle, &scaley, 0, osWaitForever);
+	scaley = 64/amp_enc_value;
+	return scaley;
+}
+uint16_t scale_period(){
+	uint16_t scalex;
+	uint16_t Period_enc_value = osMessageQueueGet(verticalScaleHandle, &scalex, 0, osWaitForever);
+	scalex = 100/Period_enc_value;
+	return scalex;
 }
 

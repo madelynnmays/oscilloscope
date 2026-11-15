@@ -6,6 +6,7 @@
  */
 //nick
 #include "Screen.h"
+#include "Formatter.h"
 //spi init and screen cmd are useful
 //spi formate region was for testing display and had more value before.
 void Spi_init(void)
@@ -44,8 +45,8 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
         screen_cmd(0x10 | (startCol >> 4));
         screen_cmd(0x00 | (startCol & 0x0F));
 
-        GPIOA->ODR |= GPIO_PIN_8;
-        GPIOA->ODR &= ~GPIO_PIN_5;
+        GPIOA->ODR |= GPIO_PIN_8; //data
+        GPIOA->ODR &= ~GPIO_PIN_5; //cs low
         for (uint8_t col = startCol; col <= endCol; col++) {
             while (!LL_SPI_IsActiveFlag_TXE(SPI1));
             LL_SPI_TransmitData8(SPI1, fill);
@@ -55,6 +56,33 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
         GPIOA->ODR |= GPIO_PIN_5;
     }
 }
-void PlotDataPoints(uint8_t plotpoint){
-
+void PlotDataPoints(uint8_t y){
+	uint8_t pageformat = y/8;
+	uint8_t lastpage = pageformat;
+	uint16_t scale_x = scale_period();
+	uint16_t scale_y = scale_amplitude();
+	for(uint16_t prevColumn =0; prevColumn <100; prevColumn++){
+		screen_cmd(0xB0 + pageformat);
+		screen_cmd(0x00 | ((prevColumn & 0x0F)/scale_y));
+		screen_cmd(0x10 | ((prevColumn >> 4)/scale_y));
+		if (lastpage == pageformat){
+			GPIOA->ODR |= GPIO_PIN_8; // data
+			GPIOA->ODR &= ~GPIO_PIN_5; //cs low
+			while(!LL_SPI_IsActiveFlag_TXE(SPI1));
+			LL_SPI_TransmitData8(SPI1, y);
+			while (LL_SPI_IsActiveFlag_BSY(SPI1));
+			GPIOA->ODR |= GPIO_PIN_5; //cs high
+		}else{
+			screen_cmd(0xB0 + pageformat);
+			screen_cmd(0x00 | (prevColumn & 0x0F));
+			screen_cmd(0x10 | (prevColumn >> 4));
+			GPIOA->ODR |= GPIO_PIN_8; // data
+			GPIOA->ODR &= ~GPIO_PIN_5; //cs low
+			while(!LL_SPI_IsActiveFlag_TXE(SPI1));
+			LL_SPI_TransmitData8(SPI1, y);
+			while (LL_SPI_IsActiveFlag_BSY(SPI1));
+			GPIOA->ODR |= GPIO_PIN_5; //cs low
+			lastpage = pageformat;
+		}
+	}
 }

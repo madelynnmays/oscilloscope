@@ -88,6 +88,14 @@ void Error_Handler(void);
 #define USART2_TX_GPIO_Port GPIOA
 #define USART2_RX_Pin LL_GPIO_PIN_3
 #define USART2_RX_GPIO_Port GPIOA
+#define encoder_1_up_Pin LL_GPIO_PIN_9
+#define encoder_1_up_GPIO_Port GPIOA
+#define encoder_1_down_Pin LL_GPIO_PIN_10
+#define encoder_1_down_GPIO_Port GPIOA
+#define encoder_2_up_Pin LL_GPIO_PIN_11
+#define encoder_2_up_GPIO_Port GPIOA
+#define encoder_2_down_Pin LL_GPIO_PIN_12
+#define encoder_2_down_GPIO_Port GPIOA
 #define SWDIO_Pin LL_GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin LL_GPIO_PIN_14
