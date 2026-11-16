@@ -28,5 +28,6 @@ void sendMetaInfoCommand(uint8_t data);
 void sendMetaInfoWrite(uint8_t data);
 
 void initMetaInfo();
+void updateMetaDisplay(uint8_t topLine[16], uint8_t bottomLine[16]);
 
 #endif /* INC_METAINFODISPLAY_H_ */

@@ -22,4 +22,7 @@ struct btn
 };
 uint8_t btnHandler(struct btn *btn);
 
+void asciiConverter(uint8_t number, uint8_t* digit1, uint8_t* digit2, uint8_t* digit3, uint8_t* digit4);
+
+
 #endif /* INC_USERINT_H_ */

@@ -49,7 +49,9 @@ extern "C" {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+typedef struct {
+    uint16_t values[101];
+} ADCFrame_t; // to make cubemx happy so i can allocated enough size for the adc array passing queue
 /* USER CODE END PD */
 
 /* Exported macro -------------------------------------------------------------*/

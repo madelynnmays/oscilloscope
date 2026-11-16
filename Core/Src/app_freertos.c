@@ -68,7 +68,7 @@ const osThreadAttr_t userIntTask_attributes = {
   .stack_size = sizeof(MyBufferuserIntTask),
   .cb_mem = &MycontrolBlocuserIntTask,
   .cb_size = sizeof(MycontrolBlocuserIntTask),
-  .priority = (osPriority_t) osPriorityNormal4,
+  .priority = (osPriority_t) osPriorityNormal6,
 };
 /* Definitions for voltReadingTask */
 osThreadId_t voltReadingTaskHandle;
@@ -96,7 +96,7 @@ const osThreadAttr_t triggerHandling_attributes = {
 };
 /* Definitions for screenPlotter */
 osThreadId_t screenPlotterHandle;
-uint32_t screenPlotterBuffer[ 128 ];
+uint32_t screenPlotterBuffer[ 512 ];
 osStaticThreadDef_t screenPlotterBlocTask05;
 const osThreadAttr_t screenPlotter_attributes = {
   .name = "screenPlotter",
@@ -104,7 +104,7 @@ const osThreadAttr_t screenPlotter_attributes = {
   .stack_size = sizeof(screenPlotterBuffer),
   .cb_mem = &screenPlotterBlocTask05,
   .cb_size = sizeof(screenPlotterBlocTask05),
-  .priority = (osPriority_t) osPriorityNormal1,
+  .priority = (osPriority_t) osPriorityNormal5,
 };
 /* Definitions for adcReadWrite */
 osMutexId_t adcReadWriteHandle;
@@ -204,7 +204,7 @@ const osMessageQueueAttr_t verticalScale_attributes = {
 };
 /* Definitions for triggerEdge */
 osMessageQueueId_t triggerEdgeHandle;
-uint8_t triggerEdgeBuffer09[ 1 * sizeof( uint16_t ) ];
+uint8_t triggerEdgeBuffer09[ 1 * sizeof( uint32_t ) ];
 osStaticMessageQDef_t triggerEdgeControlBlock09;
 const osMessageQueueAttr_t triggerEdge_attributes = {
   .name = "triggerEdge",
@@ -215,7 +215,7 @@ const osMessageQueueAttr_t triggerEdge_attributes = {
 };
 /* Definitions for adcBufferPass */
 osMessageQueueId_t adcBufferPassHandle;
-uint8_t adcBufferPassBuffer10[ 101 * sizeof( uint16_t ) ];
+uint8_t adcBufferPassBuffer10[ 1 * sizeof( ADCFrame_t ) ];
 osStaticMessageQDef_t adcBufferPassControlBlock10;
 const osMessageQueueAttr_t adcBufferPass_attributes = {
   .name = "adcBufferPass",
@@ -291,9 +291,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of verticalScale */
   verticalScaleHandle = osMessageQueueNew (1, sizeof(uint16_t), &verticalScale_attributes);
   /* creation of triggerEdge */
-  triggerEdgeHandle = osMessageQueueNew (1, sizeof(uint16_t), &triggerEdge_attributes);
+  triggerEdgeHandle = osMessageQueueNew (1, sizeof(uint32_t), &triggerEdge_attributes);
   /* creation of adcBufferPass */
-  adcBufferPassHandle = osMessageQueueNew (1, sizeof(uint16_t)*101, &adcBufferPass_attributes);
+  adcBufferPassHandle = osMessageQueueNew (1, sizeof(ADCFrame_t), &adcBufferPass_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -338,7 +338,7 @@ void StartDefaultTask(void *argument)
 	LL_TIM_EnableCounter(TIM16);
   /* Infinite loop */
 	initMetaInfo();
-	sendMetaInfoWrite('B');
+
 
 for(;;)
   {
@@ -365,6 +365,9 @@ void userIntTaskStart(void *argument)
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
+	uint8_t charDispTop[16] = {"v/div 0000mv    "};
+	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
+	uint8_t changed = 0;
 
 
   	struct btn btnUp = {HIGH,8, GPIOC}; // need to check gpio pins for these (trigger down)
@@ -380,6 +383,16 @@ void userIntTaskStart(void *argument)
   for(;;)
   {
 
+	  if(changed)
+	  {
+		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
+		  updateMetaDisplay(charDispTop, charDispBottom);
+		  changed = 0;
+	  }
+	  for(int k = 0; k< 40; k++)
+	  {
+		  PlotDataPoints(k);
+	  }
 
 
 
@@ -389,14 +402,18 @@ void userIntTaskStart(void *argument)
 	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
 	          if (scale_x < 10000){
 	        	  scale_x = scale_x +100;
+	        	  changed = 1;
 	          } else if(scale_x == 10){
 	        	  scale_x = 100;
+	        	  changed = 1;
 	          }
 	      } else {
 	          if (scale_x-100 > 100){
 	        	  scale_x = -100;
+	        	  changed = 1;
 	          } else if(scale_x -100 < 100){
 	        	  scale_x = 10;
+	        	  changed = 1;
 	          }
 	      }
 	  }
@@ -408,9 +425,11 @@ void userIntTaskStart(void *argument)
 		  if ((encoder_y_down.btnState == HIGH) || (encoder_y_down.btnState == RISE)){
 			  if (scale_y < 3200){
 				  scale_y = scale_y +100;
+				  changed = 1;
 			  }
 		  } else{
 			  scale_y = scale_y -100;
+			  changed = 1;
 		  }
 	  }
 
@@ -420,14 +439,17 @@ void userIntTaskStart(void *argument)
 	  if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  {
 	  	trigger_val = trigger_val +100;
+	  	changed = 1;
 	  }
 	  else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  {
 	  	trigger_val = trigger_val +100;
+	  	changed = 1;
 	  }
-	  osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, osWaitForever);
-	  osMessageQueuePut(verticalScaleHandle, &scale_y, 0, osWaitForever);
-	  osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, osWaitForever);
+	  osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, 0);
+	  osMessageQueuePut(verticalScaleHandle, &scale_y, 0, 0);
+	  osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, 0);
+
     osDelay(1);
   }
   /* USER CODE END userIntTask */
@@ -479,7 +501,7 @@ void triggerHandling(void *argument)
 	uint16_t adcMVArray[110] = {0};
 	circ_bbuf_t adcBuffer = {adcMVArray,0,0,101,1,0};
 	uint8_t samplesTaken = 0;
-	uint8_t triggerLevel = 0;
+	uint16_t triggerLevel = 0;
 	enum triggerEdge triggerEdge = RISING;
 
   /* Infinite loop */
@@ -502,9 +524,8 @@ void triggerHandling(void *argument)
 		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 350);
 		  samplesTaken = 0;
 		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
-		  osMessageQueuePut(adcBufferPassHandle, &adcMVArray, 0, osWaitForever);
+		  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
 
-		  sendMetaInfoWrite('t');
 
 	  }
 
@@ -526,21 +547,31 @@ void screenPlotter(void *argument)
   /* USER CODE BEGIN screenPlotter */
 	uint8_t index = 0;
 	uint16_t adcResults[101] = {0};
+	uint8_t shiftedIndex = 0;
   /* Infinite loop */
   for(;;)
   {
 		osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
-		osMessageQueueGet(adcBufferPassHandle, &adcResults, 0, osWaitForever);
-		//uint8_t shiftedIndex = 50-index; //50 is middle of screen
+		osMessageQueueGet(adcBufferPassHandle, adcResults, 0, osWaitForever);
+		if(index >= 50)
+		{
+			shiftedIndex = index - 50; //ex: index @ 75, start left at array 25
+		}
+		if (index < 50)
+		{
+			shiftedIndex = index+50; //ex: index @ 25, start at array 75
+		}
 
-		for (uint8_t buffPos = index; buffPos < 101; buffPos++)//plot trigger index to top
-		{
-			PlotDataPoints(adcResults[buffPos]);
+		for(uint8_t buffpossLeft = shiftedIndex; buffpossLeft < 101; buffpossLeft++)
+		{//starts at 50 before the trigger to the top of the array, then wraps
+			PlotDataPoints(adcResults[buffpossLeft]);
+
 		}
-		for (uint8_t buffPoslower = 0; buffPoslower < index; buffPoslower ++)//plot bottom to trigger index
-		{
-			PlotDataPoints(adcResults[buffPoslower]);
+		for(uint8_t buffpossRight = 0; buffpossRight < shiftedIndex; buffpossRight++)
+		{//starts at array 0 to the trigger point
+			PlotDataPoints(adcResults[buffpossRight]);
 		}
+
   }
   /* USER CODE END screenPlotter */
 }
