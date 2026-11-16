@@ -84,3 +84,19 @@ void sendMetaInfoWrite(uint8_t data)
 
 	return;
 }
+void updateMetaDisplay(uint8_t topLine[16], uint8_t bottomLine[16])
+{
+	sendMetaInfoCommand(0x01); // clear display
+	sendMetaInfoCommand(0x02); // return home
+	for(int i=0;i<16;i++)
+	{
+	  sendMetaInfoWrite(topLine[i]);
+	}
+	sendMetaInfoCommand(0xC0); // go to next line
+	for(int j=0;j<16;j++)
+	{
+	  sendMetaInfoWrite(bottomLine[j]);
+	}
+	return;
+
+}

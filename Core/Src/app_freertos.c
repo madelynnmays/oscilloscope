@@ -60,7 +60,7 @@ const osThreadAttr_t defaultTask_attributes = {
 };
 /* Definitions for userIntTask */
 osThreadId_t userIntTaskHandle;
-uint32_t MyBufferuserIntTask[ 128 ];
+uint32_t MyBufferuserIntTask[ 256 ];
 osStaticThreadDef_t MycontrolBlocuserIntTask;
 const osThreadAttr_t userIntTask_attributes = {
   .name = "userIntTask",
@@ -68,7 +68,7 @@ const osThreadAttr_t userIntTask_attributes = {
   .stack_size = sizeof(MyBufferuserIntTask),
   .cb_mem = &MycontrolBlocuserIntTask,
   .cb_size = sizeof(MycontrolBlocuserIntTask),
-  .priority = (osPriority_t) osPriorityNormal4,
+  .priority = (osPriority_t) osPriorityNormal6,
 };
 /* Definitions for voltReadingTask */
 osThreadId_t voltReadingTaskHandle;
@@ -84,7 +84,7 @@ const osThreadAttr_t voltReadingTask_attributes = {
 };
 /* Definitions for triggerHandling */
 osThreadId_t triggerHandlingHandle;
-uint32_t triggerHandlingbufferTask04[ 128 ];
+uint32_t triggerHandlingbufferTask04[ 256 ];
 osStaticThreadDef_t triggerHandlingblocTask04;
 const osThreadAttr_t triggerHandling_attributes = {
   .name = "triggerHandling",
@@ -93,6 +93,18 @@ const osThreadAttr_t triggerHandling_attributes = {
   .cb_mem = &triggerHandlingblocTask04,
   .cb_size = sizeof(triggerHandlingblocTask04),
   .priority = (osPriority_t) osPriorityNormal2,
+};
+/* Definitions for screenPlotter */
+osThreadId_t screenPlotterHandle;
+uint32_t screenPlotterBuffer[ 512 ];
+osStaticThreadDef_t screenPlotterBlocTask05;
+const osThreadAttr_t screenPlotter_attributes = {
+  .name = "screenPlotter",
+  .stack_mem = &screenPlotterBuffer[0],
+  .stack_size = sizeof(screenPlotterBuffer),
+  .cb_mem = &screenPlotterBlocTask05,
+  .cb_size = sizeof(screenPlotterBlocTask05),
+  .priority = (osPriority_t) osPriorityNormal5,
 };
 /* Definitions for adcReadWrite */
 osMutexId_t adcReadWriteHandle;
@@ -192,7 +204,7 @@ const osMessageQueueAttr_t verticalScale_attributes = {
 };
 /* Definitions for triggerEdge */
 osMessageQueueId_t triggerEdgeHandle;
-uint8_t triggerEdgeBuffer09[ 1 * sizeof( uint16_t ) ];
+uint8_t triggerEdgeBuffer09[ 1 * sizeof( uint32_t ) ];
 osStaticMessageQDef_t triggerEdgeControlBlock09;
 const osMessageQueueAttr_t triggerEdge_attributes = {
   .name = "triggerEdge",
@@ -200,6 +212,17 @@ const osMessageQueueAttr_t triggerEdge_attributes = {
   .cb_size = sizeof(triggerEdgeControlBlock09),
   .mq_mem = &triggerEdgeBuffer09,
   .mq_size = sizeof(triggerEdgeBuffer09)
+};
+/* Definitions for adcBufferPass */
+osMessageQueueId_t adcBufferPassHandle;
+uint8_t adcBufferPassBuffer10[ 1 * sizeof( ADCFrame_t ) ];
+osStaticMessageQDef_t adcBufferPassControlBlock10;
+const osMessageQueueAttr_t adcBufferPass_attributes = {
+  .name = "adcBufferPass",
+  .cb_mem = &adcBufferPassControlBlock10,
+  .cb_size = sizeof(adcBufferPassControlBlock10),
+  .mq_mem = &adcBufferPassBuffer10,
+  .mq_size = sizeof(adcBufferPassBuffer10)
 };
 /* Definitions for triggerHappened */
 osSemaphoreId_t triggerHappenedHandle;
@@ -268,7 +291,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of verticalScale */
   verticalScaleHandle = osMessageQueueNew (1, sizeof(uint16_t), &verticalScale_attributes);
   /* creation of triggerEdge */
-  triggerEdgeHandle = osMessageQueueNew (1, sizeof(uint16_t), &triggerEdge_attributes);
+  triggerEdgeHandle = osMessageQueueNew (1, sizeof(uint32_t), &triggerEdge_attributes);
+  /* creation of adcBufferPass */
+  adcBufferPassHandle = osMessageQueueNew (1, sizeof(ADCFrame_t), &adcBufferPass_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -284,6 +309,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of triggerHandling */
   triggerHandlingHandle = osThreadNew(triggerHandling, NULL, &triggerHandling_attributes);
+
+  /* creation of screenPlotter */
+  screenPlotterHandle = osThreadNew(screenPlotter, NULL, &screenPlotter_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -310,7 +338,7 @@ void StartDefaultTask(void *argument)
 	LL_TIM_EnableCounter(TIM16);
   /* Infinite loop */
 	initMetaInfo();
-	sendMetaInfoWrite('B');
+
 
 for(;;)
   {
@@ -337,6 +365,10 @@ void userIntTaskStart(void *argument)
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
+	uint8_t charDispTop[16] = {"v/div 0000mv    "};
+	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
+	uint8_t changed = 0;
+
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
 
@@ -353,12 +385,18 @@ void userIntTaskStart(void *argument)
   for(;;)
   {
 
-	uint8_t index;
-	if (osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever) == osOK)
-		{
-			//sendMetaInfoWrite(index + 48);
-			sendMetaInfoWrite('T');
-		}
+	  if(changed)
+	  {
+		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
+		  updateMetaDisplay(charDispTop, charDispBottom);
+		  changed = 0;
+	  }
+	  for(int k = 0; k< 40; k++)
+	  {
+		  PlotDataPoints(k);
+	  }
+
+
 
 	  btnHandler(&encoder_x_up);
 	  btnHandler(&encoder_x_down);
@@ -366,14 +404,18 @@ void userIntTaskStart(void *argument)
 	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
 	          if (scale_x < 10000){
 	        	  scale_x = scale_x +100;
+	        	  changed = 1;
 	          } else if(scale_x == 10){
 	        	  scale_x = 100;
+	        	  changed = 1;
 	          }
 	      } else {
 	          if (scale_x-100 > 100){
 	        	  scale_x = -100;
+	        	  changed = 1;
 	          } else if(scale_x -100 < 100){
 	        	  scale_x = 10;
+	        	  changed = 1;
 	          }
 	      }
 	  }
@@ -381,12 +423,18 @@ void userIntTaskStart(void *argument)
 
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
-	  if (encoder_y_up.btnState == FALL) {
-	      if (encoder_y_down.btnState == HIGH || encoder_y_down.btnState == RISE) {
-	          if (scale_y < 3200) scale_y += 100;
-	      } else {
-	          if (scale_y > 100)  scale_y -= 100;
-	      }
+
+	  if (encoder_y_up.btnState == FALL){
+		  if ((encoder_y_down.btnState == HIGH) || (encoder_y_down.btnState == RISE)){
+			  if (scale_y < 3200){
+				  scale_y = scale_y +100;
+				  changed = 1;
+			  }
+		  } else{
+			  scale_y = scale_y -100;
+			  changed = 1;
+		  }
+
 	  }
 
 
@@ -395,11 +443,14 @@ void userIntTaskStart(void *argument)
 	  if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  {
 	  	trigger_val = trigger_val +100;
+	  	changed = 1;
 	  }
 	  else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  {
 	  	trigger_val = trigger_val +100;
+	  	changed = 1;
 	  }
+
 
 	  if (scale_x != prev_x) {
 	      osMessageQueueReset(horizontalScaleHandle);
@@ -416,6 +467,7 @@ void userIntTaskStart(void *argument)
 	      osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, 0);
 	      prev_t = trigger_val;
 	  }
+
     osDelay(1);
   }
   /* USER CODE END userIntTask */
@@ -439,14 +491,14 @@ void voltReadingTaskStart(void *argument)
 	  uint16_t message;
 	  osMessageQueueGet(adcStartedHandle,&message,0,osWaitForever); //this tells us the ADC has been fired
 
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
+
 
 	  for (uint32_t j = 0; j< 123456; j++ )
 	  {
 		if(LL_ADC_IsActiveFlag_EOC(ADC1)) {break;}
 	  }
 	  uint16_t adcResult = readADC();
-	  osMutexRelease(adcReadWriteHandle);
+
 	  uint16_t adcResultMV = convertADCtomv(adcResult);
 	  osMessageQueuePut(ADCreadingsHandle, &adcResultMV, 0, osWaitForever);
 
@@ -464,39 +516,82 @@ void voltReadingTaskStart(void *argument)
 void triggerHandling(void *argument)
 {
   /* USER CODE BEGIN triggerHandling */
-	uint16_t adcMVArray[100] = {0};
-	circ_bbuf_t adcBuffer = {adcMVArray,0,0,100,1,0};
+	uint16_t adcMVArray[110] = {0};
+	circ_bbuf_t adcBuffer = {adcMVArray,0,0,101,1,0};
+	uint8_t samplesTaken = 0;
+	uint16_t triggerLevel = 0;
+	enum triggerEdge triggerEdge = RISING;
+
   /* Infinite loop */
   for(;;)
   {
-	  osMutexAcquire(adcReadWriteHandle, osWaitForever);
-	  //this task is lower priority than voltReading
-	  //thus the first time we get here, the ADCreadingsHandle queue is full
-	  //take the mutex, empty the queue, then continue
+
+	  osMessageQueueGet(triggerLevelHandle, &triggerLevel, 0, 0); //if there is something in this queue, the trigger level has changed
+	  osMessageQueueGet(triggerEdgeHandle, &triggerEdge, 0, 0); //if there is something here, trigger edge has changed
 
 	  uint16_t adcMessage;
-	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, 0) == osOK)
+	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever) == osOK)
 	  {
 		  circ_bbuf_push(&adcBuffer, adcMessage);
+		  samplesTaken++;
 
 	  }
 
-	  if (adcBuffer.full)
+	  if (samplesTaken >= 100)
 	  {
-		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 250);
+		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 350);
+		  samplesTaken = 0;
 		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
-		  adcBuffer.full = 0;
-		  sendMetaInfoWrite('t');
+		  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
+
 
 	  }
-	  if(osMessageQueueGetCount(ADCreadingsHandle) == 0) //once we've emptied the queue, release
-	  {
-		  osMutexRelease(adcReadWriteHandle);
-	  }
 
-    osDelay(1);
+
+
   }
   /* USER CODE END triggerHandling */
+}
+
+/* USER CODE BEGIN Header_screenPlotter */
+/**
+* @brief Function implementing the screenPlotter thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_screenPlotter */
+void screenPlotter(void *argument)
+{
+  /* USER CODE BEGIN screenPlotter */
+	uint8_t index = 0;
+	uint16_t adcResults[101] = {0};
+	uint8_t shiftedIndex = 0;
+  /* Infinite loop */
+  for(;;)
+  {
+		osMessageQueueGet(triggerPositionHandle, &index, 0, osWaitForever);
+		osMessageQueueGet(adcBufferPassHandle, adcResults, 0, osWaitForever);
+		if(index >= 50)
+		{
+			shiftedIndex = index - 50; //ex: index @ 75, start left at array 25
+		}
+		if (index < 50)
+		{
+			shiftedIndex = index+50; //ex: index @ 25, start at array 75
+		}
+
+		for(uint8_t buffpossLeft = shiftedIndex; buffpossLeft < 101; buffpossLeft++)
+		{//starts at 50 before the trigger to the top of the array, then wraps
+			PlotDataPoints(adcResults[buffpossLeft]);
+
+		}
+		for(uint8_t buffpossRight = 0; buffpossRight < shiftedIndex; buffpossRight++)
+		{//starts at array 0 to the trigger point
+			PlotDataPoints(adcResults[buffpossRight]);
+		}
+
+  }
+  /* USER CODE END screenPlotter */
 }
 
 /* Private application code --------------------------------------------------*/
