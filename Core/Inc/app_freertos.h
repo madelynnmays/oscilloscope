@@ -60,6 +60,7 @@ extern osThreadId_t defaultTaskHandle;
 extern osThreadId_t userIntTaskHandle;
 extern osThreadId_t voltReadingTaskHandle;
 extern osThreadId_t triggerHandlingHandle;
+extern osThreadId_t screenPlotterHandle;
 extern osMutexId_t adcReadWriteHandle;
 extern osMessageQueueId_t ADCreadingsHandle;
 extern osMessageQueueId_t time_voltagePairsHandle;
@@ -70,6 +71,7 @@ extern osMessageQueueId_t triggerLevelHandle;
 extern osMessageQueueId_t horizontalScaleHandle;
 extern osMessageQueueId_t verticalScaleHandle;
 extern osMessageQueueId_t triggerEdgeHandle;
+extern osMessageQueueId_t adcBufferPassHandle;
 extern osSemaphoreId_t triggerHappenedHandle;
 extern osSemaphoreId_t stopCheckingTriggerHandle;
 
@@ -82,6 +84,7 @@ void StartDefaultTask(void *argument);
 void userIntTaskStart(void *argument);
 void voltReadingTaskStart(void *argument);
 void triggerHandling(void *argument);
+void screenPlotter(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
