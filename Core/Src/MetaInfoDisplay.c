@@ -7,46 +7,37 @@
 
 #include "MetaInfoDisplay.h"
 
-void DisplayVoltageValue(int16_t num)
-{
-
-	/* TODO */
-	return;
-}
-
-void DisplayCursorValue(int16_t num)
-{
-	/* TODO */
-	return;
-}
-
-void DisplayCursor2Value(int16_t num)
-{
-	/* TODO */
-	return;
-}
-
 void initMetaInfo()
 {
 	//taken straight from the manual
 	MetaInfoBus->ODR &= ~MetaInfoClockMask; //clock low
 	for (int i = 0; i<10000;i++){;}	//TODO
+	osDelay(40);
 	//change to 40ms
 	sendMetaInfoCommand(0x30); //wake up command
+	osDelay(5);
 	for (int i = 0; i<10000;i++){;}	//TODO
 	//change to 5ms
 	sendMetaInfoCommand(0x30); //wake up command 2
+	osDelay(5);
 	for (int i = 0; i<10000;i++){;}	//TODO
 	//change to 160us
 	sendMetaInfoCommand(0x30); //wake up command 3
+	osDelay(5);
 	for (int i = 0; i<10000;i++){;}	//TODO
 	//change to 160us
 	sendMetaInfoCommand(0x38); // 8 bit input, 2 line
+	osDelay(5);
 	sendMetaInfoCommand(0x10); // set cursor
+	osDelay(5);
 	sendMetaInfoCommand(0x0f); // display on, cursor on, blinky on
+	osDelay(5);
 	sendMetaInfoCommand(0x06); // entry mode set
+	osDelay(5);
 	sendMetaInfoCommand(0x01); // clear display
+	osDelay(5);
 	for (int i = 0; i<10000;i++){;}
+	osDelay(5);
 	sendMetaInfoCommand(0x02); // return home
 	for (int i = 0; i<10000;i++){;}
 
@@ -76,7 +67,7 @@ void sendMetaInfoWrite(uint8_t data)
 	MetaInfoBus->ODR |= MetaInfoRSMask; //set RS high
 	MetaInfoBus->ODR &= ~(MetaInfoRWMask); //set RW low
 	MetaInfoBus->ODR |= MetaInfoClockMask; //set clock high
-	for (int i = 0; i<100;i++){;} //wait for a second
+	for (int i = 0; i<10000;i++){;} //wait for a second
 	//TODO
 	//REMOVE MAGIC NUMBER and make 300ns or longer
 	MetaInfoBus->ODR &= ~MetaInfoClockMask; //clock low

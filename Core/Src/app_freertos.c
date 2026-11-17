@@ -333,10 +333,11 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
 	Spi_init();
-	Spi_Format_Region(0, 7, 0, 131, 0xa0);
+	Spi_Format_Region(0, 7, 0, 131, 0xFF);
 	LL_TIM_ClearFlag_UPDATE(TIM16);
 	LL_TIM_EnableIT_UPDATE(TIM16);
 	LL_TIM_EnableCounter(TIM16);
+
   /* Infinite loop */
 for(;;)
 	{
@@ -355,12 +356,13 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	osDelay(100);
 	initMetaInfo();
-	osDelay(30);
+	osDelay(100);
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
-	uint8_t charDispTop[16] = {"v/div 0100mv    "};
+	uint8_t charDispTop[16] = {"v/div 0000mv    "};
 	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
 	uint8_t changed = 1;
 
@@ -379,10 +381,10 @@ void userIntTaskStart(void *argument)
   /* Infinite loop */
   for(;;)
   {
-
 	  if(changed)
 	  {
 		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
+		  asciiConverter(scale_x, &charDispBottom[9], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
 	  }
@@ -391,13 +393,11 @@ void userIntTaskStart(void *argument)
 		  //PlotDataPoints(k);
 	  }
 
-
-
 	  btnHandler(&encoder_x_up);
 	  btnHandler(&encoder_x_down);
 	  if (encoder_x_up.btnState == FALL){
 	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
-	          if (scale_x < 10000){
+	          if (scale_x < 10000 && scale_x != 10){
 	        	  scale_x = scale_x +100;
 	        	  changed = 1;
 	          } else if(scale_x == 10){
@@ -408,12 +408,15 @@ void userIntTaskStart(void *argument)
 	          if (scale_x-100 > 100){
 	        	  scale_x -= 100;
 	        	  changed = 1;
+	          } else if(scale_x -100 == 100){
+	          	  scale_x = 100;
 	          } else if(scale_x -100 < 100){
 	        	  scale_x = 10;
 	        	  changed = 1;
-	          }
 	      }
 	  }
+	 }
+
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
 	  if (encoder_y_up.btnState == FALL){
@@ -422,7 +425,7 @@ void userIntTaskStart(void *argument)
 				  scale_y = scale_y +100;
 				  changed = 1;
 			  }
-		  } else{
+		  } else if(scale_y -100 >= 100){
 			  scale_y = scale_y -100;
 			  changed = 1;
 		  }

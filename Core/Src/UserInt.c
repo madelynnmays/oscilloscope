@@ -38,7 +38,7 @@ uint8_t btnHandler(struct btn *btn)
 	return(btn->btnState == FALL);
 }
 
-void asciiConverter(uint8_t number, uint8_t* digit1, uint8_t* digit2, uint8_t* digit3, uint8_t* digit4)
+void asciiConverter(uint16_t number, uint8_t* digit1, uint8_t* digit2, uint8_t* digit3, uint8_t* digit4)
 {
 		*digit1 = (number % 10) + '0';
 	    *digit2 = ((number / 10) % 10) + '0';
