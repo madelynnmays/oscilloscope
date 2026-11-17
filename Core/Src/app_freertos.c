@@ -391,7 +391,7 @@ void userIntTaskStart(void *argument)
 	  }
 	  for(int k = 0; k< 40; k++)
 	  {
-		  PlotDataPoints(k);
+		 // PlotDataPoints(k);
 	  }
 
 
@@ -501,7 +501,7 @@ void triggerHandling(void *argument)
 	uint16_t adcMVArray[110] = {0};
 	circ_bbuf_t adcBuffer = {adcMVArray,0,0,101,1,0};
 	uint8_t samplesTaken = 0;
-	uint16_t triggerLevel = 0;
+	uint16_t triggerLevel = 100;
 	enum triggerEdge triggerEdge = RISING;
 
   /* Infinite loop */
@@ -521,7 +521,7 @@ void triggerHandling(void *argument)
 
 	  if (samplesTaken >= 100)
 	  {
-		  uint8_t trigger = triggerIndexParser(&adcBuffer, RISING, 350);
+		  uint8_t trigger = triggerIndexParser(&adcBuffer, triggerEdge, triggerLevel);
 		  samplesTaken = 0;
 		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
 		  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
@@ -564,12 +564,12 @@ void screenPlotter(void *argument)
 
 		for(uint8_t buffpossLeft = shiftedIndex; buffpossLeft < 101; buffpossLeft++)
 		{//starts at 50 before the trigger to the top of the array, then wraps
-			PlotDataPoints(adcResults[buffpossLeft]);
+			//PlotDataPoints(adcResults[buffpossLeft]);
 
 		}
 		for(uint8_t buffpossRight = 0; buffpossRight < shiftedIndex; buffpossRight++)
 		{//starts at array 0 to the trigger point
-			PlotDataPoints(adcResults[buffpossRight]);
+			//PlotDataPoints(adcResults[buffpossRight]);
 		}
 
   }
