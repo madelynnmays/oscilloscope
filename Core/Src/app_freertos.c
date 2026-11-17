@@ -370,6 +370,8 @@ void userIntTaskStart(void *argument)
 	uint8_t changed = 0;
 
 
+	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
+
   	struct btn btnUp = {HIGH,8, GPIOC}; // need to check gpio pins for these (trigger down)
   	struct btn btnDown = {HIGH,9, GPIOC}; //trigger up
 
@@ -421,6 +423,7 @@ void userIntTaskStart(void *argument)
 
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
+
 	  if (encoder_y_up.btnState == FALL){
 		  if ((encoder_y_down.btnState == HIGH) || (encoder_y_down.btnState == RISE)){
 			  if (scale_y < 3200){
@@ -431,6 +434,7 @@ void userIntTaskStart(void *argument)
 			  scale_y = scale_y -100;
 			  changed = 1;
 		  }
+
 	  }
 
 
@@ -446,9 +450,23 @@ void userIntTaskStart(void *argument)
 	  	trigger_val = trigger_val +100;
 	  	changed = 1;
 	  }
-	  osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, 0);
-	  osMessageQueuePut(verticalScaleHandle, &scale_y, 0, 0);
-	  osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, 0);
+
+
+	  if (scale_x != prev_x) {
+	      osMessageQueueReset(horizontalScaleHandle);
+	      osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, 0);
+	      prev_x = scale_x;
+	  }
+	  if (scale_y != prev_y) {
+	      osMessageQueueReset(verticalScaleHandle);
+	      osMessageQueuePut(verticalScaleHandle, &scale_y, 0, 0);
+	      prev_y = scale_y;
+	  }
+	  if (trigger_val != prev_t) {
+	      osMessageQueueReset(triggerLevelHandle);
+	      osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, 0);
+	      prev_t = trigger_val;
+	  }
 
     osDelay(1);
   }

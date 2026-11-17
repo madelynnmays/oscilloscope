@@ -13,7 +13,7 @@
 #include "main.h"
 
 
-void PlotDataPoints(uint8_t y);
+void PlotDataPoints(uint16_t *y);
 void Spi_init(void);
 void Adjust_adc_values(void);
 void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  uint8_t endCol, uint8_t fill);
