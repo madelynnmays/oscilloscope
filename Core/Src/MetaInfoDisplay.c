@@ -62,7 +62,7 @@ void sendMetaInfoCommand(uint8_t data)
 	MetaInfoBus->ODR &= ~MetaInfoRSMask; //set RS low
 	MetaInfoBus->ODR &= ~(MetaInfoRWMask); //set RW low
 	MetaInfoBus->ODR |= MetaInfoClockMask; //set clock high
-	for (int i = 0; i<1000;i++){;} //wait for a second
+	for (int i = 0; i<10000;i++){;} //wait for a second
 	//TODO
 	//REMOVE MAGIC NUMBER and make 300ns or longer
 	MetaInfoBus->ODR &= ~MetaInfoClockMask; //clock low

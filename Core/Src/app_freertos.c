@@ -333,22 +333,15 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
 	Spi_init();
+	Spi_Format_Region(0, 7, 0, 131, 0xa0);
 	LL_TIM_ClearFlag_UPDATE(TIM16);
 	LL_TIM_EnableIT_UPDATE(TIM16);
 	LL_TIM_EnableCounter(TIM16);
   /* Infinite loop */
-	initMetaInfo();
-
-
 for(;;)
-  {
-
-	//Spi_Format_Send();
-
-    osDelay(1);
-
-
-  }
+	{
+	osDelay(1);
+	}
   /* USER CODE END defaultTask */
 }
 
@@ -362,12 +355,14 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	initMetaInfo();
+	osDelay(30);
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
-	uint8_t charDispTop[16] = {"v/div 0000mv    "};
+	uint8_t charDispTop[16] = {"v/div 0100mv    "};
 	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
-	uint8_t changed = 0;
+	uint8_t changed = 1;
 
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
@@ -393,7 +388,7 @@ void userIntTaskStart(void *argument)
 	  }
 	  for(int k = 0; k< 40; k++)
 	  {
-		  PlotDataPoints(k);
+		  //PlotDataPoints(k);
 	  }
 
 
@@ -411,7 +406,7 @@ void userIntTaskStart(void *argument)
 	          }
 	      } else {
 	          if (scale_x-100 > 100){
-	        	  scale_x = -100;
+	        	  scale_x -= 100;
 	        	  changed = 1;
 	          } else if(scale_x -100 < 100){
 	        	  scale_x = 10;
@@ -419,11 +414,8 @@ void userIntTaskStart(void *argument)
 	          }
 	      }
 	  }
-
-
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
-
 	  if (encoder_y_up.btnState == FALL){
 		  if ((encoder_y_down.btnState == HIGH) || (encoder_y_down.btnState == RISE)){
 			  if (scale_y < 3200){
@@ -543,8 +535,6 @@ void triggerHandling(void *argument)
 		  samplesTaken = 0;
 		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
 		  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
-
-
 	  }
 
 
@@ -582,12 +572,12 @@ void screenPlotter(void *argument)
 
 		for(uint8_t buffpossLeft = shiftedIndex; buffpossLeft < 101; buffpossLeft++)
 		{//starts at 50 before the trigger to the top of the array, then wraps
-			PlotDataPoints(adcResults[buffpossLeft]);
+			//PlotDataPoints(adcResults[buffpossLeft]);
 
 		}
 		for(uint8_t buffpossRight = 0; buffpossRight < shiftedIndex; buffpossRight++)
 		{//starts at array 0 to the trigger point
-			PlotDataPoints(adcResults[buffpossRight]);
+			//PlotDataPoints(adcResults[buffpossRight]);
 		}
 
   }

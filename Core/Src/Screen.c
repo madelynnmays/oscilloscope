@@ -22,8 +22,9 @@ void Spi_init(void)
 	GPIOA->ODR &= ~GPIO_PIN_8; // D/C low: command mode
 	for(int i=0; i < 13; i++){
 		GPIOA->ODR &= ~GPIO_PIN_5; //CS low
-		LL_SPI_TransmitData8(SPI1, Array_setup[i]);
-		osDelay(5);
+	    osDelay(5);
+	    LL_SPI_TransmitData8(SPI1, Array_setup[i]);
+
 		GPIOA->ODR |= GPIO_PIN_5;
 	}
 	GPIOA->ODR |= GPIO_PIN_8;
@@ -58,29 +59,28 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
         GPIOA->ODR |= GPIO_PIN_5;
     }
 }
-void PlotDataPoints(uint16_t *y)                        // CHANGE 2: take samples, not one y
+void PlotDataPoints(uint16_t *y)
 {
-	uint16_t scale_y = scale_amplitude();                 // mV per division
+	uint16_t scale_y = scale_amplitude();
 
 	for (uint16_t col = 0; col < 100; col++) {
 
-		// CHANGE 3: compute the row for THIS column from the sample and scale
 		int32_t row = 63 - ((int32_t)y[col] * 8) / scale_y;
 		if (row < 0)  row = 0;
 		if (row > 63) row = 63;
 
-		uint8_t pageformat = row / 8;                     // CHANGE 3: moved inside the loop
-		uint8_t pixel = 1 << (row % 8);                   // CHANGE 4: one pixel, not the raw y value
+		uint8_t pageformat = row / 8;
+		uint8_t pixel = 1 << (row % 8);
 
 		screen_cmd(0xB0 + pageformat);
-		screen_cmd(0x00 | (col & 0x0F));                  // CHANGE 1: no scaling on addresses
+		screen_cmd(0x00 | (col & 0x0F));
 		screen_cmd(0x10 | (col >> 4));
 
 		GPIOA->ODR |= GPIO_PIN_8;                         // data
 		GPIOA->ODR &= ~GPIO_PIN_5;                        // cs low
 		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-		LL_SPI_TransmitData8(SPI1, pixel);                // CHANGE 4
-		while (!LL_SPI_IsActiveFlag_TXE(SPI1));           // CHANGE 5: added, so the last bit finishes
+		LL_SPI_TransmitData8(SPI1, pixel);
+		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
 		while (LL_SPI_IsActiveFlag_BSY(SPI1));
 		GPIOA->ODR |= GPIO_PIN_5;                         // cs high
 	}
