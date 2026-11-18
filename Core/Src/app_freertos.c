@@ -362,8 +362,8 @@ void userIntTaskStart(void *argument)
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
-	uint8_t charDispTop[16] = {"v/div 0000mv 0.0"};
-	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
+	uint8_t charDispTop[16] = {"v/max 0000mv 0.0"};
+	uint8_t charDispBottom[16] = {"s/max 0000 ms UP"};
 	uint8_t changed = 1;
 
 	uint8_t dummyVar[2]={0};
@@ -556,9 +556,9 @@ void screenPlotter(void *argument)
 {
   /* USER CODE BEGIN screenPlotter */
 	uint8_t index = 0;
-	uint16_t adcResults[101] = {0};
+	static uint16_t adcResults[101] = {0};
 	uint8_t shiftedIndex = 0;
-	uint16_t shiftedResults[101] = {0};
+	static uint16_t shiftedResults[101] = {0};
 	uint8_t pixel = 0;
   /* Infinite loop */
   for(;;)
@@ -571,7 +571,7 @@ void screenPlotter(void *argument)
 		}
 		if (index < 50)
 		{
-			shiftedIndex = index+50; //ex: index @ 25, start at array 75
+			shiftedIndex = index+51; //ex: index @ 25, start at array 75
 		}
 
 		 for (uint8_t i = shiftedIndex; i < 101; i++)

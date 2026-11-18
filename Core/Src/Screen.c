@@ -61,11 +61,13 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
 }
 void PlotDataPoints(uint16_t *y)
 {
-	uint16_t scale_y = scale_amplitude();
-
+	//uint16_t scale_y = scale_amplitude();
+	uint16_t scale_y = 500;
+	Spi_Format_Region(0, 7, 0, 131, 0x00);
 	for (uint16_t col = 0; col < 100; col++) {
 
-		int32_t row = 63 - ((int32_t)y[col] * 63) / scale_y;
+		//int32_t row = 63 - ((int32_t)y[col] * 8) / scale_y;
+		int32_t row = 32;
 		if (row < 0)  row = 0;
 		if (row > 63) row = 63;
 
