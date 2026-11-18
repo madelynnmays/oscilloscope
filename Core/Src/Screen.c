@@ -7,6 +7,7 @@
 //nick
 #include "Screen.h"
 #include "Formatter.h"
+#include <string.h>
 //spi init and screen cmd are useful
 //spi format region was for testing display and had more value before.
 void Spi_init(void)
@@ -59,34 +60,46 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
         GPIOA->ODR |= GPIO_PIN_5;
     }
 }
+static uint8_t fb[8][100];
+
 void PlotDataPoints(uint16_t *y)
 {
 	uint16_t scale_y = scale_amplitude();
-	Spi_Format_Region(0, 7, 0, 99, 0x00);
+	if (scale_y == 0) scale_y = 1;
 
+	memset(fb, 0, sizeof(fb));                       //ai suggestion from here\/
+
+	int32_t prevRow = 0;
 	for (uint16_t col = 0; col < 100; col++) {
-
 		int32_t row = 63 - ((int32_t)y[col] * 63) / scale_y;
-
 		if (row < 0)  row = 0;
 		if (row > 63) row = 63;
 
-		uint8_t pageformat = row / 8;
-		uint8_t pixel = 1 << (row % 8);
+		// connect to the previous column's row
+		int32_t from = (col == 0) ? row : prevRow;
+		int32_t lo = (from < row) ? from : row;
+		int32_t hi = (from < row) ? row : from;
+		for (int32_t r = lo; r <= hi; r++) {
+			fb[r / 8][col] |= (1u << (r % 8));
+		}
+		prevRow = row;
+	}												// to here              /\
 
-		screen_cmd(0xB0 + pageformat);
-		screen_cmd(0x00 | (col & 0x0F));
-		screen_cmd(0x10 | (col >> 4));
+	for (uint8_t page = 0; page < 8; page++) {
+		screen_cmd(0xB0 + page);
+		screen_cmd(0x00);
+		screen_cmd(0x10);
 
-		GPIOA->ODR |= GPIO_PIN_8;                         // data
-		GPIOA->ODR &= ~GPIO_PIN_5;                        // cs low
-		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-		LL_SPI_TransmitData8(SPI1, pixel);
+		GPIOA->ODR |= GPIO_PIN_8;                    // data
+		GPIOA->ODR &= ~GPIO_PIN_5;                   // CS low
+		for (uint16_t col = 0; col < 100; col++) {
+			while (!LL_SPI_IsActiveFlag_TXE(SPI1));
+			LL_SPI_TransmitData8(SPI1, fb[page][col]);
+		}
 		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
 		while (LL_SPI_IsActiveFlag_BSY(SPI1));
-		GPIOA->ODR |= GPIO_PIN_5;                         // cs high
+		GPIOA->ODR |= GPIO_PIN_5;                    // CS high
 	}
-	return;
 }
 
 

@@ -366,7 +366,7 @@ void userIntTaskStart(void *argument)
 	uint8_t charDispBottom[16] = {"s max 000.0ms UP"};
 	uint8_t changed = 1;
 	enum triggerEdge triggerState = FALLING;
-	enum triggerEdge prev_trigger = RISING;
+	//enum triggerEdge prev_trigger = RISING;
 	uint8_t dummyVar[2]={0};
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
@@ -653,7 +653,6 @@ void screenPlotter(void *argument)
 		pixel = 0;
 
 		PlotDataPoints(shiftedResults);
-
   }
   /* USER CODE END screenPlotter */
 }
