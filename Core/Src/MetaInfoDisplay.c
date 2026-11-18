@@ -40,9 +40,6 @@ void initMetaInfo()
 	osDelay(5);
 	sendMetaInfoCommand(0x02); // return home
 	for (int i = 0; i<10000;i++){;}
-
-
-
 	return;
 }
 
