@@ -79,9 +79,11 @@ void PlotDataPoints(uint16_t *y)
 		screen_cmd(0x10 | (col >> 4));
 
 		GPIOA->ODR |= GPIO_PIN_8;                         // data
-		GPIOA->ODR &= ~GPIO_PIN_5;                        // cs low
-		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
-		LL_SPI_TransmitData8(SPI1, pixel);
+		GPIOA->ODR &= ~GPIO_PIN_5; // cs low
+		for(uint16_t col = 0; col<100;col++){
+			while (!LL_SPI_IsActiveFlag_TXE(SPI1));
+			LL_SPI_TransmitData8(SPI1, pixel);
+		}
 		while (!LL_SPI_IsActiveFlag_TXE(SPI1));
 		while (LL_SPI_IsActiveFlag_BSY(SPI1));
 		GPIOA->ODR |= GPIO_PIN_5;                         // cs high

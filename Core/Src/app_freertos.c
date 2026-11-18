@@ -359,7 +359,7 @@ void userIntTaskStart(void *argument)
 	osDelay(100);
 	initMetaInfo();
 	osDelay(100);
-	uint16_t trigger_val = 1000;
+	uint16_t trigger_val = 500;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
 	uint8_t charDispTop[16] = {"v/max 0000mv 0.0"};
@@ -436,14 +436,23 @@ void userIntTaskStart(void *argument)
 	  btnHandler(&btnDown);                       // was trigger down
 	  if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
 	  {
-	  	trigger_val = trigger_val +100;
-	  	changed = 1;
+		if(trigger_val == 500){
+			trigger_val = 1500;
+			changed = 1;
+		} else if( trigger_val == 1500){
+			trigger_val = 2500;
+			changed = 1;
+		} else if (trigger_val == 2500){
+			trigger_val = 500;
+			changed = 1;
+		}
 	  }
-	  else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
+
+	  /*else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
 	  {
 	  	trigger_val = trigger_val +100;
 	  	changed = 1;
-	  }
+	  }*/
 
 
 	  if (scale_x != prev_x) {
