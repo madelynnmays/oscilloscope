@@ -333,9 +333,6 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
-	osDelay(100);
-	initMetaInfo();
-	osDelay(100);
 	Spi_init();
 	Spi_Format_Region(0, 7, 0, 131, 0xFF);
 	LL_TIM_ClearFlag_UPDATE(TIM16);
@@ -360,6 +357,9 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
+	osDelay(100);
+	initMetaInfo();
+	osDelay(100);
 	uint16_t trigger_val = 500, scale_x = 1000, scale_y = 1500, prev_x = 0, prev_y = 0, prev_t = 0;
 	uint8_t charDispTop[16] = {"v max 0000mv 0.0"}, charDispBottom[16] = {"s max 000.0ms UP"}, changed = 1,dummyVar[2]={0};
 	enum triggerEdge triggerState = FALLING, prev_trigger = RISING;
