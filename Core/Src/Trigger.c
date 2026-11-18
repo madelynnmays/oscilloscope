@@ -19,14 +19,14 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 
 		if(result_current > result_previous && edge == RISING)
 		{
-			if(result_current > triggerLevel && triggerLevel > result_previous)
+			if(result_current > triggerLevel && triggerLevel >= result_previous)
 			{
 				*triggered = 1;
 			}
 		}
 		if(result_current < result_previous && edge == FALLING)
 		{
-			if(result_current < triggerLevel && triggerLevel < result_previous)
+			if(result_current < triggerLevel && triggerLevel <= result_previous)
 			{
 				*triggered = 1;
 			}
@@ -42,10 +42,12 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 uint8_t triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel)
 {
 	uint8_t triggered = 0;
-	uint16_t priorResult = cbuff_results->buffer[0];
+	 uint16_t pos = cbuff_results->tail;
+	uint16_t priorResult = cbuff_results->buffer[pos];
 	for(uint8_t j = 1; j < cbuff_results->maxlen; j++)
 	{
-		priorResult = triggerDetect(priorResult, cbuff_results->buffer[j],triggerLevel, edge, &triggered);
+		pos = (pos + 1) % cbuff_results->maxlen;
+		priorResult = triggerDetect(priorResult, cbuff_results->buffer[pos],triggerLevel, edge, &triggered);
 
 		if(triggered)
 		{

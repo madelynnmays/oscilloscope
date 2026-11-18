@@ -11,21 +11,21 @@ void initMetaInfo()
 {
 	//taken straight from the manual
 	MetaInfoBus->ODR &= ~MetaInfoClockMask; //clock low
-	for (int i = 0; i<10000;i++){;}	//TODO
+	for (int i = 0; i<10000;i++){;}
 	osDelay(40);
-	//change to 40ms
+
 	sendMetaInfoCommand(0x30); //wake up command
 	osDelay(5);
-	for (int i = 0; i<10000;i++){;}	//TODO
-	//change to 5ms
+	for (int i = 0; i<10000;i++){;}
+
 	sendMetaInfoCommand(0x30); //wake up command 2
 	osDelay(5);
-	for (int i = 0; i<10000;i++){;}	//TODO
-	//change to 160us
+	for (int i = 0; i<10000;i++){;}	//
+
 	sendMetaInfoCommand(0x30); //wake up command 3
 	osDelay(5);
-	for (int i = 0; i<10000;i++){;}	//TODO
-	//change to 160us
+	for (int i = 0; i<10000;i++){;}
+
 	sendMetaInfoCommand(0x38); // 8 bit input, 2 line
 	osDelay(5);
 	sendMetaInfoCommand(0x10); // set cursor

@@ -386,7 +386,7 @@ void userIntTaskStart(void *argument)
 	  {
 		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
 		  asciiConverter(scale_x, &charDispBottom[9], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
-		  asciiConverter(trigger_val, &charDispTop[15],&charDispTop[13],&dummyVar[0],&dummyVar[1]);
+		  asciiConverter(trigger_val, &dummyVar[0],&dummyVar[1],&charDispTop[15],&charDispTop[13]);
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
 	  }
@@ -519,7 +519,7 @@ void voltReadingTaskStart(void *argument)
 void triggerHandling(void *argument)
 {
   /* USER CODE BEGIN triggerHandling */
-	uint16_t adcMVArray[110] = {0};
+	uint16_t adcMVArray[101] = {0};
 	circ_bbuf_t adcBuffer = {adcMVArray,0,0,101,1,0};
 	uint8_t samplesTaken = 0;
 	uint16_t triggerLevel = 100;
@@ -544,8 +544,12 @@ void triggerHandling(void *argument)
 	  {
 		  uint8_t trigger = triggerIndexParser(&adcBuffer, triggerEdge, triggerLevel);
 		  samplesTaken = 0;
-		  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
-		  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
+		  if(trigger)
+		  {
+			  osMessageQueuePut(triggerPositionHandle, &trigger, 0, osWaitForever);
+			  osMessageQueuePut(adcBufferPassHandle, adcMVArray, 0, osWaitForever);
+		  }
+
 	  }
 
 
@@ -567,8 +571,9 @@ void screenPlotter(void *argument)
 	uint8_t index = 0;
 	static uint16_t adcResults[101] = {0};
 	uint8_t shiftedIndex = 0;
-	static uint16_t shiftedResults[101] = {0};
+	static uint16_t shiftedResults[100] = {0};
 	uint8_t pixel = 0;
+	static uint16_t test[100] = {};
   /* Infinite loop */
   for(;;)
   {
@@ -583,7 +588,7 @@ void screenPlotter(void *argument)
 			shiftedIndex = index+51; //ex: index @ 25, start at array 75
 		}
 
-		 for (uint8_t i = shiftedIndex; i < 101; i++)
+		 for (uint8_t i = shiftedIndex; i < 100; i++)
 		{
 			shiftedResults[pixel] = adcResults[i];
 			pixel++;
