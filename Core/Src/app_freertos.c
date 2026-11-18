@@ -333,6 +333,9 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
+	osDelay(100);
+	initMetaInfo();
+	osDelay(100);
 	Spi_init();
 	Spi_Format_Region(0, 7, 0, 131, 0xFF);
 	LL_TIM_ClearFlag_UPDATE(TIM16);
@@ -357,58 +360,38 @@ for(;;)
 void userIntTaskStart(void *argument)
 {
   /* USER CODE BEGIN userIntTask */
-	osDelay(100);
-	initMetaInfo();
-	osDelay(100);
-	uint16_t trigger_val = 500, scale_x = 1000, scale_y = 1500;
-	uint8_t charDispTop[16] = {"v max 0000mv 0.0"}, charDispBottom[16] = {"s max 000.0ms UP"};
-	uint8_t changed = 1;
+	uint16_t trigger_val = 500, scale_x = 1000, scale_y = 1500, prev_x = 0, prev_y = 0, prev_t = 0;
+	uint8_t charDispTop[16] = {"v max 0000mv 0.0"}, charDispBottom[16] = {"s max 000.0ms UP"}, changed = 1,dummyVar[2]={0};
 	enum triggerEdge triggerState = FALLING, prev_trigger = RISING;
-	uint8_t dummyVar[2]={0};
-	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
-  	struct btn btnUp = {HIGH,8, GPIOC}, btnDown = {HIGH,9, GPIOC};
-  	struct btn encoder_x_up = {HIGH, 9, GPIOA}, encoder_x_down = {HIGH, 10, GPIOA}; //(down)
-  	struct btn encoder_y_up = {HIGH, 11, GPIOA}, encoder_y_down = {HIGH, 12, GPIOA}; //down
-
+  	struct btn btnUp = {HIGH,8, GPIOC}, btnDown = {HIGH,9, GPIOC}, encoder_x_up = {HIGH, 9, GPIOA};
+  	struct btn encoder_y_up = {HIGH, 11, GPIOA}, encoder_y_down = {HIGH, 12, GPIOA}, encoder_x_down = {HIGH, 10, GPIOA};
   /* Infinite loop */
-  for(;;)
-  {
-	  if(changed)
-	  {
+  for(;;){
+	  if(changed){
 		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
 		  asciiConverter(scale_x, &charDispBottom[10], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
 		  asciiConverter(trigger_val, &dummyVar[0],&dummyVar[1],&charDispTop[15],&charDispTop[13]);
-		  if(triggerState == RISING)
-		  {
+		  if(triggerState == RISING){
 			  charDispBottom[14] = 'U', charDispBottom[15] = 'P';
-		  }
-		  if(triggerState == FALLING)
-		  {
+		  }else if(triggerState == FALLING){
 			  charDispBottom[14] = 'D', charDispBottom[15] = 'N';
 		  }
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
 	  }
-
-
 	  btnHandler(&encoder_x_up);
 	  btnHandler(&encoder_x_down);
-	  if (encoder_x_up.btnState == FALL)
-	  {
+	  if (encoder_x_up.btnState == FALL){
 		  changed = 1;
-	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE))
-	      {
+	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
 	    	  scale_x = incx(scale_x);
 	    	  changed = 1;
-	      }
-	      else
-	      {
+	      } else {
 	    	  scale_x = decx(scale_x);
 	    	  changed = 1;
 	      }
 	      changeTIM16Period(calcPeriod(scale_x));//use this new scale number to change the period for the adc
 	  }
-
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
 	  if (encoder_y_up.btnState == FALL){
@@ -421,28 +404,16 @@ void userIntTaskStart(void *argument)
 			  scale_y = scale_y -100;
 			  changed = 1;
 		  }
-
-	  }
-
-
+	  } prev_x = scale_xcheck(scale_x, prev_x); prev_y = scale_yCheck(scale_y, prev_y);
 	  btnHandler(&btnUp);
 	  btnHandler(&btnDown);                       // was trigger down
-	  if((btnUp.btnState == FALL))
-	  {
+	  if((btnUp.btnState == FALL)){
 		  trigger_val = triggerinc(trigger_val);
 		  changed = 1;
-	  }
-
-	  if((btnDown.btnState == FALL))
-	  {
+	  }else if((btnDown.btnState == FALL)){
 		  triggerState = triggerEdgeState(triggerState);
 		  changed = 1;
-	  }
-
-	  prev_trigger = triggerCheck(triggerState, prev_trigger);
-	  prev_x = scale_xcheck(scale_x, prev_x);
-	  prev_y = scale_yCheck(scale_y, prev_y);
-	  prev_t = Trigger_valCheck(trigger_val, prev_t);
+	  } prev_trigger = triggerCheck(triggerState, prev_trigger); prev_t = Trigger_valCheck(trigger_val, prev_t);
     osDelay(1);
   }
   /* USER CODE END userIntTask */
