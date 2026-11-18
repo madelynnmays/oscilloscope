@@ -25,6 +25,7 @@
 
 #include "Screen.h"
 #include "Userint.h"
+#include "Formatter.h"
 
 /* USER CODE END Includes */
 
@@ -359,26 +360,15 @@ void userIntTaskStart(void *argument)
 	osDelay(100);
 	initMetaInfo();
 	osDelay(100);
-	uint16_t trigger_val = 500;
-	uint16_t scale_x = 1000;
-	uint16_t scale_y = 1500;
-	uint8_t charDispTop[16] = {"v max 0000mv 0.0"};
-	uint8_t charDispBottom[16] = {"s max 000.0ms UP"};
+	uint16_t trigger_val = 500, scale_x = 1000, scale_y = 1500;
+	uint8_t charDispTop[16] = {"v max 0000mv 0.0"}, charDispBottom[16] = {"s max 000.0ms UP"};
 	uint8_t changed = 1;
-	enum triggerEdge triggerState = FALLING;
-	//enum triggerEdge prev_trigger = RISING;
+	enum triggerEdge triggerState = FALLING, prev_trigger = RISING;
 	uint8_t dummyVar[2]={0};
-
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
-
-  	struct btn btnUp = {HIGH,8, GPIOC}; // need to check gpio pins for these (trigger down)
-  	struct btn btnDown = {HIGH,9, GPIOC}; //trigger up
-
-  	struct btn encoder_x_up = {HIGH, 9, GPIOA}; // need to setup another encoder (up)
-  	struct btn encoder_x_down = {HIGH, 10, GPIOA}; //(down)
-
-  	struct btn encoder_y_up = {HIGH, 11, GPIOA}; //up
-  	struct btn encoder_y_down = {HIGH, 12, GPIOA}; //down
+  	struct btn btnUp = {HIGH,8, GPIOC}, btnDown = {HIGH,9, GPIOC};
+  	struct btn encoder_x_up = {HIGH, 9, GPIOA}, encoder_x_down = {HIGH, 10, GPIOA}; //(down)
+  	struct btn encoder_y_up = {HIGH, 11, GPIOA}, encoder_y_down = {HIGH, 12, GPIOA}; //down
 
   /* Infinite loop */
   for(;;)
@@ -390,13 +380,11 @@ void userIntTaskStart(void *argument)
 		  asciiConverter(trigger_val, &dummyVar[0],&dummyVar[1],&charDispTop[15],&charDispTop[13]);
 		  if(triggerState == RISING)
 		  {
-			  charDispBottom[14] = 'U';
-			  charDispBottom[15] = 'P';
+			  charDispBottom[14] = 'U', charDispBottom[15] = 'P';
 		  }
 		  if(triggerState == FALLING)
 		  {
-			  charDispBottom[14] = 'D';
-			  charDispBottom[15] = 'N';
+			  charDispBottom[14] = 'D', charDispBottom[15] = 'N';
 		  }
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
@@ -407,53 +395,18 @@ void userIntTaskStart(void *argument)
 	  btnHandler(&encoder_x_down);
 	  if (encoder_x_up.btnState == FALL)
 	  {
-
 		  changed = 1;
-	      if ((encoder_x_down.btnState == HIGH) ||
-	          (encoder_x_down.btnState == RISE))
+	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE))
 	      {
-
-	          // Increase horizontal scale
-	          if (scale_x < 10)
-	          {
-	              scale_x += 1;       // 0.1 ms increments
-	          }
-	          else if (scale_x < 100)
-	          {
-	              scale_x += 10;      // 1 ms increments
-	          }
-	          else if (scale_x < 1000)
-	          {
-	              scale_x += 100;     // 10 ms increments
-	          }
-	          else if (scale_x < 3000)
-	          {
-	              scale_x += 250;     // 25 ms increments
-	          }
+	    	  scale_x = incx(scale_x);
+	    	  changed = 1;
 	      }
 	      else
 	      {
-	          // Decrease horizontal scale
-	          if (scale_x > 1000)
-	          {
-	              scale_x -= 250;     // 25 ms increments
-	          }
-	          else if (scale_x > 100)
-	          {
-	              scale_x -= 100;     // 10 ms increments
-	          }
-	          else if (scale_x > 10)
-	          {
-	              scale_x -= 10;      // 1 ms increments
-	          }
-	          else if (scale_x > 1)
-	          {
-	              scale_x -= 1;       // 0.1 ms increments
-	          }
+	    	  scale_x = decx(scale_x);
+	    	  changed = 1;
 	      }
-
-	      changeTIM16Period(calcPeriod(scale_x));
-	      //use this new scale number to change the period for the adc
+	      changeTIM16Period(calcPeriod(scale_x));//use this new scale number to change the period for the adc
 	  }
 
 	  btnHandler(&encoder_y_up);
@@ -476,51 +429,20 @@ void userIntTaskStart(void *argument)
 	  btnHandler(&btnDown);                       // was trigger down
 	  if((btnUp.btnState == FALL))
 	  {
-		if(trigger_val == 500){
-			trigger_val = 1500;
-			changed = 1;
-		} else if( trigger_val == 1500){
-			trigger_val = 2500;
-			changed = 1;
-		} else if (trigger_val == 2500){
-			trigger_val = 500;
-			changed = 1;
-		}
+		  trigger_val = triggerinc(trigger_val);
+		  changed = 1;
 	  }
 
-	  else if ((btnDown.btnState == FALL))
+	  if((btnDown.btnState == FALL))
 	  {
-		if(triggerState == FALLING){
-			triggerState = RISING;
-			changed = 1;
-		} else if(triggerState == RISING){
-			triggerState = FALLING;
-			changed = 1;
-		}
+		  triggerState = triggerEdgeState(triggerState);
+		  changed = 1;
 	  }
 
-	  /*if(triggerState != prev_trigger){
-		  osMessageQueueReset(triggerEdgeHandle);
-		  osMessageQueuePut(triggerEdgeHandle, &triggerState, 0,0);
-		  prev_trigger = triggerState;
-	  }*/
-
-	  if (scale_x != prev_x) {
-	      osMessageQueueReset(horizontalScaleHandle);
-	      osMessageQueuePut(horizontalScaleHandle, &scale_x, 0, 0);
-	      prev_x = scale_x;
-	  }
-	  if (scale_y != prev_y) {
-	      osMessageQueueReset(verticalScaleHandle);
-	      osMessageQueuePut(verticalScaleHandle, &scale_y, 0, 0);
-	      prev_y = scale_y;
-	  }
-	  if (trigger_val != prev_t) {
-	      osMessageQueueReset(triggerLevelHandle);
-	      osMessageQueuePut(triggerLevelHandle, &trigger_val, 0, 0);
-	      prev_t = trigger_val;
-	  }
-
+	  prev_trigger = triggerCheck(triggerState, prev_trigger);
+	  prev_x = scale_xcheck(scale_x, prev_x);
+	  prev_y = scale_yCheck(scale_y, prev_y);
+	  prev_t = Trigger_valCheck(trigger_val, prev_t);
     osDelay(1);
   }
   /* USER CODE END userIntTask */
@@ -580,8 +502,8 @@ void triggerHandling(void *argument)
   {
 
 	  osMessageQueueGet(triggerLevelHandle, &triggerLevel, 0, 0); //if there is something in this queue, the trigger level has changed
-	  osMessageQueueGet(triggerEdgeHandle, &triggerEdge, 0, 0); //if there is something here, trigger edge has changed
-
+	  uint32_t edge;
+	  if (osMessageQueueGet(triggerEdgeHandle, &edge, 0, 0) == osOK) triggerEdge = (enum triggerEdge)edge;
 	  uint16_t adcMessage;
 	  if (osMessageQueueGet(ADCreadingsHandle, &adcMessage, 0, osWaitForever) == osOK)
 	  {

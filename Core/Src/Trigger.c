@@ -58,5 +58,21 @@ uint8_t triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, ui
 
 	}
 	return 0; // assume trigger never happens at array 0 which i do believe is impossible
+}
 
+uint8_t triggerEdgeState(enum triggerEdge triggerState){
+	if(triggerState == FALLING){
+		triggerState = RISING;
+	} else if(triggerState == RISING){
+		triggerState = FALLING;
+	}
+	return triggerState;
+}
+
+uint8_t triggerCheck(enum triggerEdge triggerState, enum triggerEdge prev_trigger){
+	  if(triggerState != prev_trigger){
+		  uint32_t edge = triggerState;
+		  osMessageQueuePut(triggerEdgeHandle, &edge, 0, 0);
+		  prev_trigger = triggerState;
+	  }
 }

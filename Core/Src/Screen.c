@@ -83,7 +83,7 @@ void PlotDataPoints(uint16_t *y)
 			fb[r / 8][col] |= (1u << (r % 8));
 		}
 		prevRow = row;
-	}												// to here              /\
+	}                                             //to here                  /\
 
 	for (uint8_t page = 0; page < 8; page++) {
 		screen_cmd(0xB0 + page);

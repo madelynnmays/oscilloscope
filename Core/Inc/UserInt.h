@@ -24,5 +24,10 @@ uint8_t btnHandler(struct btn *btn);
 
 void asciiConverter(uint16_t number, uint8_t* digit1, uint8_t* digit2, uint8_t* digit3, uint8_t* digit4);
 
+uint16_t triggerinc(uint16_t trigger_val);
+
+uint16_t incx(uint16_t scale_x);
+uint16_t decx(uint16_t scale_x);
+
 
 #endif /* INC_USERINT_H_ */

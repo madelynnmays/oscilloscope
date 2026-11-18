@@ -6,6 +6,7 @@
  */
 //nick
 #include "UserInt.h"
+#include "trigger.h"
 
 
 uint8_t btnHandler(struct btn *btn)
@@ -45,7 +46,56 @@ void asciiConverter(uint16_t number, uint8_t* digit1, uint8_t* digit2, uint8_t* 
 	    *digit3 = ((number / 100) % 10) + '0';
 	    *digit4 = ((number / 1000) % 10) + '0';
 	return;
+}
 
+uint16_t triggerinc(uint16_t trigger_val){
+	if(trigger_val == 500){
+		trigger_val = 1500;
+	} else if( trigger_val == 1500){
+		trigger_val = 2500;
+	} else if (trigger_val == 2500){
+		trigger_val = 500;
+	}
+	return trigger_val;
+}
+uint16_t incx(uint16_t scale_x){
 
+    if (scale_x < 10)
+    {
+        scale_x += 1;       // 0.1 ms increments
+    }
+    else if (scale_x < 100)
+    {
+        scale_x += 10;      // 1 ms increments
+    }
+    else if (scale_x < 1000)
+    {
+        scale_x += 100;     // 10 ms increments
+    }
+    else if (scale_x < 3000)
+    {
+        scale_x += 250;     // 25 ms increments
+    }
+    return scale_x;
+}
+uint16_t decx(uint16_t scale_x){
+
+    if (scale_x > 1000)
+    {
+        scale_x -= 250;     // 25 ms increments
+    }
+    else if (scale_x > 100)
+    {
+        scale_x -= 100;     // 10 ms increments
+    }
+    else if (scale_x > 10)
+    {
+        scale_x -= 10;      // 1 ms increments
+    }
+    else if (scale_x > 1)
+    {
+        scale_x -= 1;       // 0.1 ms increments
+    }
+    return scale_x;
 }
 

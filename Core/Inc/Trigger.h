@@ -32,7 +32,9 @@ uint16_t triggerDetect(uint16_t result_previous, uint16_t result_current, uint32
 uint8_t triggerIndexParser(circ_bbuf_t *cbuff_results, enum triggerEdge edge, uint32_t triggerLevel);
 
 
+uint8_t triggerEdgeState(enum triggerEdge triggerState);
 
+uint8_t triggerCheck(enum triggerEdge triggerState, enum triggerEdge prev_trigger);
 
 
 
