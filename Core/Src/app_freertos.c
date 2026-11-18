@@ -361,11 +361,12 @@ void userIntTaskStart(void *argument)
 	osDelay(100);
 	uint16_t trigger_val = 500;
 	uint16_t scale_x = 1000;
-	uint16_t scale_y = 100;
+	uint16_t scale_y = 1500;
 	uint8_t charDispTop[16] = {"v max 0000mv 0.0"};
 	uint8_t charDispBottom[16] = {"s max 000.0ms UP"};
 	uint8_t changed = 1;
 	enum triggerEdge triggerState = FALLING;
+	enum triggerEdge prev_trigger = RISING;
 	uint8_t dummyVar[2]={0};
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
@@ -473,7 +474,7 @@ void userIntTaskStart(void *argument)
 
 	  btnHandler(&btnUp);
 	  btnHandler(&btnDown);                       // was trigger down
-	  if((btnUp.btnState == HIGH) & (btnDown.btnState == RISE))
+	  if((btnUp.btnState == FALL))
 	  {
 		if(trigger_val == 500){
 			trigger_val = 1500;
@@ -487,12 +488,22 @@ void userIntTaskStart(void *argument)
 		}
 	  }
 
-	  /*else if ((btnUp.btnState == LOW) & (btnDown.btnState == RISE))
+	  else if ((btnDown.btnState == FALL))
 	  {
-	  	trigger_val = trigger_val +100;
-	  	changed = 1;
-	  }*/
+		if(triggerState == FALLING){
+			triggerState = RISING;
+			changed = 1;
+		} else if(triggerState == RISING){
+			triggerState = FALLING;
+			changed = 1;
+		}
+	  }
 
+	  /*if(triggerState != prev_trigger){
+		  osMessageQueueReset(triggerEdgeHandle);
+		  osMessageQueuePut(triggerEdgeHandle, &triggerState, 0,0);
+		  prev_trigger = triggerState;
+	  }*/
 
 	  if (scale_x != prev_x) {
 	      osMessageQueueReset(horizontalScaleHandle);

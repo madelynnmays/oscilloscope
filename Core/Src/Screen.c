@@ -62,6 +62,7 @@ void Spi_Format_Region(uint8_t startPage, uint8_t endPage, uint8_t startCol,  ui
 void PlotDataPoints(uint16_t *y)
 {
 	uint16_t scale_y = scale_amplitude();
+	Spi_Format_Region(0, 7, 0, 99, 0x00);
 
 	for (uint16_t col = 0; col < 100; col++) {
 
