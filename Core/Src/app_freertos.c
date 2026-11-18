@@ -362,10 +362,11 @@ void userIntTaskStart(void *argument)
 	uint16_t trigger_val = 1000;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
-	uint8_t charDispTop[16] = {"v/div 0000mv    "};
+	uint8_t charDispTop[16] = {"v/div 0000mv 0.0"};
 	uint8_t charDispBottom[16] = {"s/div 0000 ms UP"};
 	uint8_t changed = 1;
 
+	uint8_t dummyVar[2]={0};
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
 
@@ -385,13 +386,11 @@ void userIntTaskStart(void *argument)
 	  {
 		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
 		  asciiConverter(scale_x, &charDispBottom[9], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
+		  asciiConverter(trigger_val, &charDispTop[15],&charDispTop[13],&dummyVar[0],&dummyVar[1]);
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
 	  }
-	  for(int k = 0; k< 40; k++)
-	  {
 
-	  }
 
 	  btnHandler(&encoder_x_up);
 	  btnHandler(&encoder_x_down);
@@ -559,6 +558,8 @@ void screenPlotter(void *argument)
 	uint8_t index = 0;
 	uint16_t adcResults[101] = {0};
 	uint8_t shiftedIndex = 0;
+	uint16_t shiftedResults[101] = {0};
+	uint8_t pixel = 0;
   /* Infinite loop */
   for(;;)
   {
@@ -573,15 +574,21 @@ void screenPlotter(void *argument)
 			shiftedIndex = index+50; //ex: index @ 25, start at array 75
 		}
 
-		for(uint8_t buffpossLeft = shiftedIndex; buffpossLeft < 101; buffpossLeft++)
-		{//starts at 50 before the trigger to the top of the array, then wraps
-			//PlotDataPoints(adcResults[buffpossLeft]);
+		 for (uint8_t i = shiftedIndex; i < 101; i++)
+		{
+			shiftedResults[pixel] = adcResults[i];
+			pixel++;
+		}
 
+
+		for (uint8_t i = 0; i < shiftedIndex; i++)
+		{
+			shiftedResults[pixel] = adcResults[i];
+			pixel++;
 		}
-		for(uint8_t buffpossRight = 0; buffpossRight < shiftedIndex; buffpossRight++)
-		{//starts at array 0 to the trigger point
-			//PlotDataPoints(adcResults[buffpossRight]);
-		}
+		pixel = 0;
+
+		PlotDataPoints(shiftedResults);
 
   }
   /* USER CODE END screenPlotter */

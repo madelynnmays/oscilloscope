@@ -65,7 +65,7 @@ void PlotDataPoints(uint16_t *y)
 
 	for (uint16_t col = 0; col < 100; col++) {
 
-		int32_t row = 63 - ((int32_t)y[col] * 8) / scale_y;
+		int32_t row = 63 - ((int32_t)y[col] * 63) / scale_y;
 		if (row < 0)  row = 0;
 		if (row > 63) row = 63;
 

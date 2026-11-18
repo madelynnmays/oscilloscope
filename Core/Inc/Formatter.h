@@ -19,5 +19,6 @@
 
 uint16_t scale_amplitude();
 uint16_t scale_period();
+uint8_t scaleWave(uint16_t value, uint16_t screenTop);
 
 #endif /* INC_FORMATTER_H_ */
