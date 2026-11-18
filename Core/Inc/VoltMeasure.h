@@ -33,6 +33,8 @@ int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data);
 
 uint16_t convertADCtomv(uint16_t ADCResult);
 uint16_t readADC();
+uint16_t calcPeriod(uint16_t timescale);
+void changeTIM16Period(uint16_t reloadVal);
 
 
 

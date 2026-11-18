@@ -362,10 +362,10 @@ void userIntTaskStart(void *argument)
 	uint16_t trigger_val = 500;
 	uint16_t scale_x = 1000;
 	uint16_t scale_y = 100;
-	uint8_t charDispTop[16] = {"v/max 0000mv 0.0"};
-	uint8_t charDispBottom[16] = {"s/max 0000 ms UP"};
+	uint8_t charDispTop[16] = {"v max 0000mv 0.0"};
+	uint8_t charDispBottom[16] = {"s max 000.0ms UP"};
 	uint8_t changed = 1;
-
+	enum triggerEdge triggerState = FALLING;
 	uint8_t dummyVar[2]={0};
 
 	uint16_t prev_x = 0, prev_y = 0, prev_t = 0;
@@ -385,8 +385,18 @@ void userIntTaskStart(void *argument)
 	  if(changed)
 	  {
 		  asciiConverter(scale_y, &charDispTop[9], &charDispTop[8], &charDispTop[7], &charDispTop[6]);
-		  asciiConverter(scale_x, &charDispBottom[9], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
+		  asciiConverter(scale_x, &charDispBottom[10], &charDispBottom[8], &charDispBottom[7], &charDispBottom[6]);
 		  asciiConverter(trigger_val, &dummyVar[0],&dummyVar[1],&charDispTop[15],&charDispTop[13]);
+		  if(triggerState == RISING)
+		  {
+			  charDispBottom[14] = 'U';
+			  charDispBottom[15] = 'P';
+		  }
+		  if(triggerState == FALLING)
+		  {
+			  charDispBottom[14] = 'D';
+			  charDispBottom[15] = 'N';
+		  }
 		  updateMetaDisplay(charDispTop, charDispBottom);
 		  changed = 0;
 	  }
@@ -394,27 +404,56 @@ void userIntTaskStart(void *argument)
 
 	  btnHandler(&encoder_x_up);
 	  btnHandler(&encoder_x_down);
-	  if (encoder_x_up.btnState == FALL){
-	      if ((encoder_x_down.btnState == HIGH) || (encoder_x_down.btnState == RISE)){
-	          if (scale_x < 10000 && scale_x != 10){
-	        	  scale_x = scale_x +100;
-	        	  changed = 1;
-	          } else if(scale_x == 10){
-	        	  scale_x = 100;
-	        	  changed = 1;
+	  if (encoder_x_up.btnState == FALL)
+	  {
+
+		  changed = 1;
+	      if ((encoder_x_down.btnState == HIGH) ||
+	          (encoder_x_down.btnState == RISE))
+	      {
+
+	          // Increase horizontal scale
+	          if (scale_x < 10)
+	          {
+	              scale_x += 1;       // 0.1 ms increments
 	          }
-	      } else {
-	          if (scale_x-100 > 100){
-	        	  scale_x -= 100;
-	        	  changed = 1;
-	          } else if(scale_x -100 == 100){
-	          	  scale_x = 100;
-	          } else if(scale_x -100 < 100){
-	        	  scale_x = 10;
-	        	  changed = 1;
+	          else if (scale_x < 100)
+	          {
+	              scale_x += 10;      // 1 ms increments
+	          }
+	          else if (scale_x < 1000)
+	          {
+	              scale_x += 100;     // 10 ms increments
+	          }
+	          else if (scale_x < 3000)
+	          {
+	              scale_x += 250;     // 25 ms increments
+	          }
 	      }
+	      else
+	      {
+	          // Decrease horizontal scale
+	          if (scale_x > 1000)
+	          {
+	              scale_x -= 250;     // 25 ms increments
+	          }
+	          else if (scale_x > 100)
+	          {
+	              scale_x -= 100;     // 10 ms increments
+	          }
+	          else if (scale_x > 10)
+	          {
+	              scale_x -= 10;      // 1 ms increments
+	          }
+	          else if (scale_x > 1)
+	          {
+	              scale_x -= 1;       // 0.1 ms increments
+	          }
+	      }
+
+	      changeTIM16Period(calcPeriod(scale_x));
+	      //use this new scale number to change the period for the adc
 	  }
-	 }
 
 	  btnHandler(&encoder_y_up);
 	  btnHandler(&encoder_y_down);
@@ -573,7 +612,7 @@ void screenPlotter(void *argument)
 	uint8_t shiftedIndex = 0;
 	static uint16_t shiftedResults[100] = {0};
 	uint8_t pixel = 0;
-	static uint16_t test[100] = {};
+
   /* Infinite loop */
   for(;;)
   {

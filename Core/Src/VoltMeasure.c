@@ -80,4 +80,28 @@ int circ_bbuf_pop(circ_bbuf_t *c, uint16_t *data)
     return 0;  // return success to indicate successful push.
 }
 
+uint16_t calcPeriod(uint16_t timescale)
+{
+	uint16_t reload = (2000*timescale)/99 - 1;
+			// div by 99 bc there are 100-1 pixels on the screen
+			//mult by 2000 because the powers on mHz and tenths of ms cancel to leave that
+	return reload;
+}
 
+void changeTIM16Period(uint16_t reloadVal)
+{
+	 LL_TIM_DisableIT_UPDATE(TIM16);
+	LL_TIM_DisableCounter(TIM16);
+
+
+	LL_TIM_SetAutoReload(TIM16, reloadVal);
+
+
+	LL_TIM_GenerateEvent_UPDATE(TIM16);
+	LL_TIM_SetCounter(TIM16, 0);
+	LL_TIM_ClearFlag_UPDATE(TIM16);
+
+	LL_TIM_EnableIT_UPDATE(TIM16);
+	LL_TIM_EnableCounter(TIM16);
+	return;
+}
