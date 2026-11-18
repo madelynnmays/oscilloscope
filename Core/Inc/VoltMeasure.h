@@ -15,9 +15,6 @@
 #include "main.h"
 #include <stdbool.h>
 
-//ISR to be added
-
-extern const float resolutionADC;
 
 typedef struct {
     uint16_t * const buffer;
@@ -35,12 +32,6 @@ uint16_t convertADCtomv(uint16_t ADCResult);
 uint16_t readADC();
 uint16_t calcPeriod(uint16_t timescale);
 void changeTIM16Period(uint16_t reloadVal);
-
-
-
-
-
-
 
 
 
